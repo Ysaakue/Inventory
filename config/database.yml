@@ -6,8 +6,16 @@ default: &default
   socket: /var/run/mysqld/mysqld.sock
 
 development:
-  <<: *default
+  # <<: *default
+  # database: <%= Figaro.env.database_name %>
+  # username: <%= Figaro.env.database_username %>
+  # password: <%= Figaro.env.database_password %>
+  # url: <%= Figaro.env.DATABASE_URL %>
+  adapter: postgresql
+  encoding: unicode
   database: <%= Figaro.env.database_name %>
+  pool: 5
+  host: <%= Figaro.env.database_host %>
   username: <%= Figaro.env.database_username %>
   password: <%= Figaro.env.database_password %>
   url: <%= Figaro.env.DATABASE_URL %>
