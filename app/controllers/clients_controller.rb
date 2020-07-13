@@ -13,6 +13,10 @@ class ClientsController < ApplicationController
   
   def create
     @client = Client.new(client_params)
+    byebug
+    if @client.dimensions == nil
+      @client.dimensions = {"streets": 0, "stand": 0,"shelfs": 0 }
+    end
     if @client.save
       render json:{
         "status": "success",
@@ -54,7 +58,8 @@ class ClientsController < ApplicationController
       :cnpj,:company_name,:fantasy_name,:state_registration,:email,
       :contact_name_telephone,:telephone_number,:contact_name_cell_phone,
       :cell_phone_number,:street_name_address,:number_address,:complement_address,
-      :neighborhood_address,:postal_code_address,:state_id,:city_id
+      :neighborhood_address,:postal_code_address,:state_id,:city_id,
+      dimensions: [:streets, :stand, :shelfs]
     )
   end
 
