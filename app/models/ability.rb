@@ -4,10 +4,10 @@ class Ability
   include CanCan::Ability
 
   def initialize(user)
+    can [:read,:update], :all
+    cannot :create, :all
     if user.present?
       can :manage, :all
-    else
-      can [:read,:update], :all
     end
   end
 end
