@@ -45,3 +45,6 @@ gem 'figaro'
 
 # Authentication
 gem 'devise_token_auth'
+
+# Permissions
+gem 'cancancan'
