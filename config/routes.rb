@@ -5,5 +5,10 @@ Rails.application.routes.draw do
   resources :clients, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
   end
-  post '/clients/:client_id/products/import', to: 'products#import'
+  resources :employees, except: [:new,:edit] do
+    collection do
+      get '/identify_employee', to: 'employees#identify_employee'
+    end
+  end
+    post '/clients/:client_id/products/import', to: 'products#import'
 end

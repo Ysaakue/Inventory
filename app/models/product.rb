@@ -13,4 +13,17 @@ class Product < ApplicationRecord
     FD: 8,
     FR: 9
   }
+
+  def as_json options={}
+    {
+      id: id,
+      code: code,
+      description: description,
+      current_stock: current_stock,
+      unit_measurement: unit_measurement,
+      value: value,
+      client: client.fantasy_name,
+      location: location,
+    }
+  end
 end
