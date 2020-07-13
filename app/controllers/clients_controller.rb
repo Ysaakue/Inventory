@@ -13,7 +13,6 @@ class ClientsController < ApplicationController
   
   def create
     @client = Client.new(client_params)
-    byebug
     if @client.dimensions == nil
       @client.dimensions = {"streets": 0, "stand": 0,"shelfs": 0 }
     end
@@ -24,7 +23,7 @@ class ClientsController < ApplicationController
       }, status: :created
     else
       render json:{
-        "status": "erros",
+        "status": "error",
         "data": @client.errors
       }, status: :unprocessable_entity
     end
@@ -35,10 +34,10 @@ class ClientsController < ApplicationController
       render json:{
         "status": "success",
         "data": @client
-      }, status: :created
+      }, status: :updated
     else
       render json:{
-        "status": "erros",
+        "status": "error",
         "data": @client.errors
       }, status: :unprocessable_entity
     end
@@ -59,7 +58,7 @@ class ClientsController < ApplicationController
       :contact_name_telephone,:telephone_number,:contact_name_cell_phone,
       :cell_phone_number,:street_name_address,:number_address,:complement_address,
       :neighborhood_address,:postal_code_address,:state_id,:city_id,
-      dimensions: [:streets, :stand, :shelfs]
+      dimensions: [:streets, :stands, :shelfs]
     )
   end
 
