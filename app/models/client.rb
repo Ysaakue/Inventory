@@ -1,5 +1,6 @@
 class Client < ApplicationRecord
   has_many :products
+  has_many :counts
   belongs_to :city
   belongs_to :state
 

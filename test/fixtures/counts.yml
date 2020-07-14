@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  data: 2020-07-13
+  status: 1
+  flags: 
+  client_id: 1
+
+two:
+  data: 2020-07-13
+  status: 1
+  flags: 
+  client_id: 1
