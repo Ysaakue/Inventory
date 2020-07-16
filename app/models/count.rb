@@ -3,7 +3,7 @@ class Count < ApplicationRecord
   has_and_belongs_to_many :employees, join_table: "counts_employees"
   has_many :counts_products, class_name: "CountProduct"
   after_create :prepare_count
-  after_update :verify_count_without_delay
+  after_update :verify_count
 
   enum status: [
     :first_count,
@@ -66,7 +66,7 @@ class Count < ApplicationRecord
         self.completed!
       end
       self.save!
-    elsif self.fourth_count && four == 0
+    elsif self.fourth_count? && four == 0
       self.completed!
       self.save!
     end
@@ -77,8 +77,8 @@ class Count < ApplicationRecord
       id: id,
       date: date,
       status: status,
-      flags: flags,
       client: client.fantasy_name,
+      products: counts_products
     }
   end
 

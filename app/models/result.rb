@@ -1,10 +1,9 @@
 class Result < ApplicationRecord
   belongs_to :count_product, class_name: 'CountProduct'
   belongs_to :employee, optional: true
-  after_save :verify_result_without_delay
+  after_update :verify_result
 
   def verify_result
-    # byebug
     if count_product.results.size == 1 && count_product.results[0].quantity_found != -1
       Result.new(
         count_product_id: count_product.id,
@@ -43,5 +42,14 @@ class Result < ApplicationRecord
     count_product.count.verify_count
   end
 
+  def as_json options={}
+    {
+      order: order,
+      quantity_found: quantity_found,
+      employee: employee.name
+    }
+  end
+  
+  # Define asynchronous tasks
   handle_asynchronously :verify_result
 end

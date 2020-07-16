@@ -20,9 +20,6 @@ class CountsController < ApplicationController
   def create
     @count = Count.new(count_params)
     @count.client_id = params[:client_id]
-    if @count.flags == nil
-      @count.flags = {}
-    end
     if @count.save
       render json:{
         "status": "success",
@@ -58,6 +55,62 @@ class CountsController < ApplicationController
     end
   end
 
+  def submit_quantity_found
+    cp = CountProduct.find_by(count_id: params[:count][:count_id], product_id: params[:count][:product_id])
+    if !cp.count.cmpleted?
+      if cp.count.first_count?
+        result = cp.results[0]
+      elsif cp.count.second_count?
+        if cp.results[0].employee_id == params[:count][:employee_id]
+          employee_already_count_this_product = true
+        end
+        result = cp.results[1]
+      elsif cp.count.third_count?
+        if  cp.results[0].employee_id == params[:count][:employee_id] ||
+            cp.results[1].employee_id == params[:count][:employee_id]
+          employee_already_count_this_product = true
+        end
+        result = cp.results[2]
+      elsif cp.count.fourth_count?
+        result = cp.results[3]
+      end
+      byebug
+      if result.quantity_found == -1
+        result.quantity_found = params[:count][:quantity_found]
+      elsif !result.count_product.product.location.blank? &&
+            !result.count_product.product.location["locations"].blank? &&
+            result.count_product.product.location["locations"].include?(params[:count][:location])
+        product_already_count_in_this_status = true
+      else
+        result.quantity_found += params[:count][:quantity_found]
+      end
+      if employee_already_count_this_product
+        render json: {
+          status: "error",
+          data: "Funcionário já realizou uma contagem desse produto."
+        }
+      elsif product_already_count_in_this_status
+        render json:{
+          status: "error",
+          data: "Produto já contado nessa etapa."
+        }
+      else
+        result.employee_id = params[:count][:employee_id]
+        result.save!
+        update_product_location(cp)
+        render json:{
+          status: "success",
+          data: result
+        }
+      end
+    else
+      render json:{
+        status: "success",
+        data: "A contagem já foi encerrada."
+      }
+    end
+  end
+
   private
   def count_params
     params.require(:count).permit(
@@ -76,5 +129,30 @@ class CountsController < ApplicationController
 
   def set_employee
     @employee = Employee.find(params[:employee_id])
+  end
+
+  def update_product_location(cp)
+    if cp.product.location.blank?
+      cp.product.location = {
+        id: params[:count][:count_id],
+        locations: [
+          params[:count][:location]
+        ]
+      }
+      cp.product.save!
+    else
+      if cp.product.location[:id] != params[:count][:count_id]
+        cp.product.location = {
+          id: params[:count][:count_id],
+          locations: [
+            params[:count][:location]
+          ]
+        }
+        cp.product.save!
+      else
+        cp.product.location["locations"] << params[:count][:location]
+        cp.product.save!
+      end
+    end
   end
 end
