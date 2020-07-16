@@ -40,8 +40,8 @@ class EmployeesController < ApplicationController
   end
   
   def destroy
-    if @employee.save
-      render json:{"status": "success"}
+    if @employee.destroy
+      render json:{"status": "success"}, status: 202
     else
       render json:{"status": "error"}
     end

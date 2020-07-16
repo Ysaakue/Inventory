@@ -52,7 +52,7 @@ class CountsController < ApplicationController
   
   def destroy
     if @count.destroy
-      render json:{"status": "success"}
+      render json:{"status": "success"}, status: 202
     else
       render json:{"status": "error"}
     end
