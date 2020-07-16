@@ -50,3 +50,9 @@ gem 'devise_token_auth'
 
 # Permissions
 gem 'cancancan'
+
+# Asynchronous tasks
+gem 'delayed_job_active_record'
+
+# Manage backgounds process
+gem "daemons"

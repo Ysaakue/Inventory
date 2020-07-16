@@ -12,5 +12,6 @@ Rails.application.routes.draw do
       get ':employee_id/counts', to: 'counts#index_by_employee'
     end
   end
-    post '/clients/:client_id/products/import', to: 'products#import'
+  post '/clients/:client_id/products/import', to: 'products#import'
+  put '/submit_result', to: 'counts#submit_quantity_found'
 end

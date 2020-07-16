@@ -34,6 +34,9 @@ module Inventory
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # Use delayed_job to asynchronous tasks
+    config.active_job.queue_adapter = :delayed_job
+
     # Cors configurations
     config.middleware.insert_before 0, Rack::Cors do
       allow do

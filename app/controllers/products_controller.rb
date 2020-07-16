@@ -14,7 +14,7 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
     if @product.location == nil
-      @product.location = []
+      @product.location = {}
     end
     @product.client_id = params[:client_id]
     if @product.save

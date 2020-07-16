@@ -1,6 +1,7 @@
 class Product < ApplicationRecord
   belongs_to :client
-
+  has_many :counts_products, class_name: "CountProduct"
+  
   enum unit_measurement: {
     PTE: 0,
     KG: 1,
