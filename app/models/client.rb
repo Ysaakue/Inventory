@@ -22,7 +22,9 @@ class Client < ApplicationRecord
       neighborhood_address: neighborhood_address ,
       postal_code_address: postal_code_address,
       state: state.name,
+      state_id: state_id,
       city: city.name,
+      city_id: city_id,
       dimensions: dimensions
     }
   end

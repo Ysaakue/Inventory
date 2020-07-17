@@ -34,7 +34,7 @@ class ClientsController < ApplicationController
       render json:{
         "status": "success",
         "data": @client
-      }, status: :updated
+      }
     else
       render json:{
         "status": "error",
