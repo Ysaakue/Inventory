@@ -46,7 +46,7 @@ class Result < ApplicationRecord
     {
       order: order,
       quantity_found: quantity_found,
-      employee: employee.name
+      employee: (employee.blank?? '' : employee.name)
     }
   end
   

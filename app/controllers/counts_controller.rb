@@ -1,9 +1,14 @@
 class CountsController < ApplicationController
-  before_action :set_client, only: [:index]
+  before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [:show,:update,:destroy]
 
   def index
+    @counts = Count.all
+    render json: @counts
+  end
+
+  def index_by_client
     @counts = @client.counts
     render json: @counts
   end
@@ -57,7 +62,7 @@ class CountsController < ApplicationController
 
   def submit_quantity_found
     cp = CountProduct.find_by(count_id: params[:count][:count_id], product_id: params[:count][:product_id])
-    if !cp.count.cmpleted?
+    if !cp.count.completed?
       if cp.count.first_count?
         result = cp.results[0]
       elsif cp.count.second_count?
@@ -74,7 +79,6 @@ class CountsController < ApplicationController
       elsif cp.count.fourth_count?
         result = cp.results[3]
       end
-      byebug
       if result.quantity_found == -1
         result.quantity_found = params[:count][:quantity_found]
       elsif !result.count_product.product.location.blank? &&
