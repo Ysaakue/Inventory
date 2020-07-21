@@ -27,10 +27,12 @@ class Result < ApplicationRecord
       if  count_product.results[0].quantity_found != count_product.results[1].quantity_found &&
           count_product.results[2].quantity_found != count_product.results[1].quantity_found &&
           count_product.results[0].quantity_found != count_product.results[2].quantity_found
-        Result.new(
-          count_product_id: count_product.id,
-          order: 4,
-        ).save!
+        if count_product.count.fourth_count_released?
+          Result.new(
+            count_product_id: count_product.id,
+            order: 4,
+          ).save!
+        end
       else
         count_product.combined_count = true
         count_product.save!

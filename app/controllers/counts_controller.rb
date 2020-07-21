@@ -1,7 +1,7 @@
 class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
-  before_action :set_count, only: [:show,:update,:destroy]
+  before_action :set_count, only: [:show,:update,:destroy,:fourth_count_release]
 
   def index
     @counts = Count.all
@@ -14,7 +14,7 @@ class CountsController < ApplicationController
   end
 
   def index_by_employee
-    @counts = @employee.counts.not_completed
+    @counts = @employee.counts.not_completed.not_fourth_count_pending
     render json: @counts
   end
   
@@ -62,7 +62,7 @@ class CountsController < ApplicationController
 
   def submit_quantity_found
     cp = CountProduct.find_by(count_id: params[:count][:count_id], product_id: params[:count][:product_id])
-    if !cp.count.completed?
+    if !cp.count.completed? || cp.count.fourth_count_pending?
       if cp.count.first_count?
         result = cp.results[0]
       elsif cp.count.second_count?
@@ -108,9 +108,39 @@ class CountsController < ApplicationController
         }
       end
     else
+      if cp.count.fourth_count_pending?
+        render json:{
+          status: "success",
+          data: "A quarta etapa da contagem precisa ser liberada por um administrador."
+        }
+      else
+        render json:{
+          status: "success",
+          data: "A contagem já foi encerrada."
+        }
+      end
+    end
+  end
+
+  def fourth_count_release
+    byebug
+    @count.fourth_count_released = params[:count][:fourth_count_release]
+    if @count.fourth_count_released?
+      @count.employee_ids = params[:count][:employee_id]
+      @count.fourth_count!
+    else
+      @count.completed!
+    end
+    if @count.save
       render json:{
-        status: "success",
-        data: "A contagem já foi encerrada."
+        "status": "success",
+        "data": @count
+      }
+      @count.verify_count
+    else
+      render json:{
+        "status": "error",
+        "data": @count.errors
       }
     end
   end

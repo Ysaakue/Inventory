@@ -9,9 +9,21 @@ class Count < ApplicationRecord
     :first_count,
     :second_count,
     :third_count,
+    :fourth_count_pending,
     :fourth_count,
     :completed
   ]
+
+  def as_json option={}
+    {
+      id: id,
+      date: date,
+      status: status,
+      client: client.fantasy_name,
+      products: counts_products
+    }
+  end
+
 
   def prepare_count
     self.client.products.each do |product|
@@ -61,7 +73,7 @@ class Count < ApplicationRecord
       self.save!
     elsif self.third_count? && three == 0
       if four != 0
-        self.fourth_count!
+        self.fourth_count_pending!
       else
         self.completed!
       end
@@ -72,17 +84,22 @@ class Count < ApplicationRecord
     end
   end
 
-  def as_json option={}
-    {
-      id: id,
-      date: date,
-      status: status,
-      client: client.fantasy_name,
-      products: counts_products
-    }
+  def generate_fourth_results
+    if fourth_count_pending? && fourth_count_released?
+      cps = counts_products.where("combined_count = false")
+      cps.each do |cp|
+        if cp.results.size == 3
+          Result.new(
+            count_product_id: cp.id,
+            order: 4,
+          ).save!
+        end
+      end
+    end
   end
 
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count
+  handle_asynchronously :generate_fourth_results
 end
