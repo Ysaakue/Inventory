@@ -56,3 +56,7 @@ gem 'delayed_job_active_record'
 
 # Manage backgounds process
 gem "daemons"
+
+# Generate PDF files
+gem 'wkhtmltopdf-binary'
+gem 'wicked_pdf'

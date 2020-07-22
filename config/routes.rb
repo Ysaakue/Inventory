@@ -18,4 +18,5 @@ Rails.application.routes.draw do
   post '/clients/:client_id/products/import', to: 'products#import'
   put '/submit_result', to: 'counts#submit_quantity_found'
   get '/counts', to: 'counts#index'
+  get '/counts/:id/report', to: 'counts#report'
 end

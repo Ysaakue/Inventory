@@ -1,7 +1,7 @@
 class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
-  before_action :set_count, only: [:show,:update,:destroy,:fourth_count_release]
+  before_action :set_count, only: [:show,:update,:destroy,:fourth_count_release,:report]
 
   def index
     @counts = Count.all
@@ -123,7 +123,6 @@ class CountsController < ApplicationController
   end
 
   def fourth_count_release
-    byebug
     @count.fourth_count_released = params[:count][:fourth_count_release]
     if @count.fourth_count_released?
       @count.employee_ids = params[:count][:employee_id]
@@ -143,6 +142,12 @@ class CountsController < ApplicationController
         "data": @count.errors
       }
     end
+  end
+
+  def report
+    pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
+    pdf = WickedPdf.new.pdf_from_string(pdf_html)
+    send_data pdf, filename: "relatorio_#{@count.client.fantasy_name}_#{Date.today}.pdf"
   end
 
   private
