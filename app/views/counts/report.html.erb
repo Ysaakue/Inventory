@@ -2,60 +2,167 @@
 <html>
   <head>
     <meta charset='utf-8' />
-    <%= wicked_pdf_stylesheet_link_tag "pdf" -%>
-    <%= wicked_pdf_javascript_include_tag "number_pages" %>
-  </head>
-  <body onload='number_pages'>
-    <div id="header">
-      <%= wicked_pdf_image_tag 'mysite.jpg' %>
-    </div>
-    <div id="content">
-      <h3>Cliente: <%=count.client.fantasy_name%></h3>
-      <h3>Data: <%=count.date%>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Mulish&display=swap');
 
-      <table border=1 style="width:100%;">
+      body {
+        font-family: 'Mulish', sans-serif;
+        color: #2a2a2a;
+      }
+
+      #capa {
+        height: 1300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid black;
+      }
+
+      .nt-title, .title, #data {
+        text-align: center;
+      }
+
+      .nt-title {
+        margin-top: 50%;
+        font-size: 40px;
+      }
+
+      #data {
+        margin-top: 550px;
+        padding-bottom: 0;
+      }
+
+      .title {
+        width: 70%;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .sub-title {
+        text-align: center;
+      }
+
+      .hr {
+        padding-top: 40px;
+        width: 60%; 
+        margin: 0 auto;
+      }
+
+      #content {
+        margin: 10px 30px;
+      }
+
+      table {
+        border: 1px solid #ccc;
+        border-collapse: collapse;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      th, td {
+        border: 1px solid #ccc;
+        text-align: center;
+        margin: 0;
+        padding: 10px 0;
+      }
+
+      th {
+        /* font-size: 18px; */
+        font-size: 16px;
+      }
+
+      td {
+        font-size: 16px;
+      }
+
+      .page-break { 
+        display:block;
+        clear:both;
+        page-break-after:always;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="capa">
+      <h1 class="nt-title">NT Consulting</h1>
+      
+      <h1 class="title">Relatório do Inventário físico de estoque da empresa "<%= (count.client.fantasy_name.size > 100)? "#{count.client.fantasy_name[0..115]}..." : count.client.fantasy_name  %>".</h1>
+      
+      <h3 id="data" class="data"><%= count.date.strftime("%d/%m/%Y") %>, Fortaleza - CE</h3>
+    </div>
+
+    <div class="page-break"></div>
+
+    <div id="content">
+      <div class="hr">
+        <hr>
+      </div>
+
+      <h1 class="sub-title"> Itens contados </h1>
+      <table style="width:100%;">
         <tr>
           <th>Cod</th>
           <th>Descrição</th>
-          <th>Valor(R$)</th>
+          <th>Valor (R$)</th>
           <th>Estoque</th>
           <th>1º Resultado</th>
           <th>2º Resultado</th>
           <th>3º Resultado</th>
           <th>4º Resultado</th>
-          <th>Divergência(%)</th>
+          <th>Divergência (%)</th>
         </tr>
         <% value_pre_count = 0 %>
         <% value_pos_count = 0 %>
         <% quantity_pre_count = 0 %>
         <% quantity_pos_count = 0 %>
         <% count.counts_products.each do |cp| %>
-          <td><%= cp.product.code %></td>
-          <td><%= cp.product.description %></td>
-          <td><%= cp.product.value %></td>
-          <td><%= cp.product.current_stock %></td>
-          <td><%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %></td>
-          <td><%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %></td>
-          <td><%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %></td>
-          <td><%= cp.results[3].blank?? '-' : cp.results[3].quantity_found %></td>
-          <% quantity_found = 0 %>
-          <% if !cp.results[3].blank? %>
-            <% quantity_found += cp.results[3].quantity_found %>
-          <% elsif !cp.results[2].blank? %>
-            <% quantity_found += cp.results[2].quantity_found %>
-          <% else %>
-            <% quantity_found += cp.results[1].quantity_found %>
-          <%end%>
-          <% value_pre_count += cp.product.value * cp.product.current_stock %>
-          <% value_pos_count += cp.product.value * quantity_found %>
-          <% quantity_pre_count += cp.product.current_stock %>
-          <% quantity_pos_count += quantity_found %>
-          <td><%= 100 - ((quantity_found*100)/cp.product.current_stock) %></td>
+          <tr>
+            <td><%= cp.product.code %></td>
+            <td><%= cp.product.description %></td>
+            <td><%= cp.product.value %></td>
+            <td><%= cp.product.current_stock %></td>
+            <td><%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %></td>
+            <td><%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %></td>
+            <td><%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %></td>
+            <td><%= cp.results[3].blank?? '-' : cp.results[3].quantity_found %></td>
+            <% quantity_found = 0 %>
+            <% if !cp.results[3].blank? %>
+              <% quantity_found += cp.results[3].quantity_found %>
+            <% elsif !cp.results[2].blank? %>
+              <% quantity_found += cp.results[2].quantity_found %>
+            <% else %>
+              <% quantity_found += cp.results[1].quantity_found %>
+            <%end%>
+            <% value_pre_count += cp.product.value * cp.product.current_stock %>
+            <% value_pos_count += cp.product.value * quantity_found %>
+            <% quantity_pre_count += cp.product.current_stock %>
+            <% quantity_pos_count += quantity_found %>
+            <td><%= 100 - ((quantity_found*100)/cp.product.current_stock) %></td>
+          </tr>
         <% end %>
       </table>
-      <h3>Valor em estoque antes da contagem: R$<%= value_pre_count %> </h3>
-      <h3>Valor em estoque após a contagem: R$<%= value_pos_count %> </h3>
-      <h3>Divergência total: <%= 100 - ((quantity_pos_count*100)/quantity_pre_count) %>% </h3>
+
+      <div class="hr">
+        <hr>
+      </div>
+      
+      <h1 class="sub-title"> Resultado final da  contagem </h1>
+      
+      <table style="width:100%;">
+        <tr>
+          <th>Valor em estoque antes da contagem (R$)</th>
+          <th>Valor em estoque após a contagem (R$)</th>
+          <th>Divergência total (%)</th>
+        </tr>
+        <tr>
+          <td><%= value_pre_count %></td>
+          <td><%= value_pos_count %></td>
+          <td><%= 100 - ((quantity_pos_count*100)/quantity_pre_count) %></td>
+        </tr>  
+      </table>
     </div>
   </body>
 </html>
