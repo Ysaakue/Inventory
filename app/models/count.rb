@@ -5,6 +5,8 @@ class Count < ApplicationRecord
   after_create :prepare_count
   after_update :verify_count
 
+  validate :date_not_retrograde
+
   enum status: [
     :first_count,
     :second_count,
@@ -13,6 +15,12 @@ class Count < ApplicationRecord
     :fourth_count,
     :completed
   ]
+
+  def date_not_retrograde
+    if date < Date.today
+      errors.add(:date, "A data não pode ser retrograda")
+    end
+  end
 
   def as_json option={}
     {
