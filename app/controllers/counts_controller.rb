@@ -1,7 +1,9 @@
 class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
-  before_action :set_count, only: [:show,:update,:destroy,:fourth_count_release,:report]
+  before_action :set_count, only: [
+    :show,:update,:destroy,:fourth_count_release,:report,:report_data
+  ]
 
   def index
     @counts = Count.all
@@ -148,6 +150,17 @@ class CountsController < ApplicationController
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
     pdf = WickedPdf.new.pdf_from_string(pdf_html)
     send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+  end
+
+  def report_data
+    render json:{
+      id: @count.id,
+      date: @count.date,
+      status: @count.status,
+      client: @count.client.fantasy_name,
+      products: @count.counts_products,
+      employees: @count.employees_to_report
+    }
   end
 
   private

@@ -106,6 +106,17 @@ class Count < ApplicationRecord
     end
   end
 
+  def employees_to_report
+    temp_employees = []
+    employees.each do |employee|
+      temp_employees << {
+        "name": employee.name,
+        "counted_products": employee.counted_products(id)
+      }
+    end
+    temp_employees
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count

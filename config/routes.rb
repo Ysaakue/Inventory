@@ -19,4 +19,5 @@ Rails.application.routes.draw do
   put '/submit_result', to: 'counts#submit_quantity_found'
   get '/counts', to: 'counts#index'
   get '/counts/:id/report', to: 'counts#report'
+  get '/counts/:id/report_data', to: 'counts#report_data'
 end
