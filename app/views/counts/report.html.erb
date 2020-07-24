@@ -102,6 +102,7 @@
           <th>Descrição</th>
           <th>Valor (R$)</th>
           <th>Estoque</th>
+          <th>localização</th>
           <th>1º Resultado</th>
           <th>2º Resultado</th>
           <th>3º Resultado</th>
@@ -118,6 +119,7 @@
             <td><%= cp.product.description %></td>
             <td><%= cp.product.value %></td>
             <td><%= cp.product.current_stock %></td>
+            <td><%= cp.product.location["locations"] %>
             <td><%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %></td>
             <td><%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %></td>
             <td><%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %></td>
