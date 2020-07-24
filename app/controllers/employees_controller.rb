@@ -49,7 +49,17 @@ class EmployeesController < ApplicationController
 
   def identify_employee
     @employee = Employee.find_by(cpf: params[:cpf])
-    render json: @employee
+    if @employee.present?
+      render json: {
+        "status": "success",
+        "data": @employee
+      }
+    else
+      render json: {
+        "status": "error",
+        "data": "Operador não encontrado"
+      }
+    end
   end
 
   private

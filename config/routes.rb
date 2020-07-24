@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   end
   resources :employees, except: [:new,:edit] do
     collection do
-      get '/identify_employee', to: 'employees#identify_employee'
+      post '/identify_employee', to: 'employees#identify_employee'
       get ':employee_id/counts', to: 'counts#index_by_employee'
     end
   end
