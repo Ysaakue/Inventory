@@ -146,7 +146,7 @@ class CountsController < ApplicationController
 
   def report
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
-    pdf = WickedPdf.new.pdf_from_string(pdf_html, {:orientation => 'Landscape'})
+    pdf = WickedPdf.new.pdf_from_string(pdf_html)
     send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
   end
 

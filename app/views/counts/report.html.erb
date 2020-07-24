@@ -11,12 +11,15 @@
       }
 
       #capa {
-        height: 890px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        height: 1427px;
+        display: -webkit-box;
+        -webkit-box-pack: center;
+        -webkit-box-align: center;
         border: 1px solid black;
+      }
+
+      #capa div {
+        -webkit-box: center;
       }
 
       .nt-title, .title, #data {
@@ -36,12 +39,6 @@
 
       .sub-title {
         text-align: center;
-      }
-
-      .hr {
-        padding-top: 40px;
-        width: 60%; 
-        margin: 0 auto;
       }
 
       #content {
@@ -71,6 +68,53 @@
       td {
         font-size: 16px;
       }
+      
+      .card {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        width: 90%;
+        padding: 30px 40px;
+        margin: 0 auto;
+        border-radius: 8px;  
+        background-color: #fafafa;
+        
+      }
+
+      .row {
+        display: -webkit-box;
+        margin: 20px 0;
+      }
+
+      .contagens {
+        -webkit-box-pack: center;
+      }
+
+      .item:first-child, .item-medium, .item-large:first-child {
+        margin-left: 0;
+      }
+
+      .item, .item-medium, .item-large, .item-produto {
+        width: 115px;
+        margin: 0 30px;
+        text-align: center;
+      }
+
+      .item-produto {
+        width: 120px;
+        text-align: left;
+      }
+
+      .item-medium {
+        width: 250px;
+        text-align: left;
+      }
+
+      .item-large {
+        width: 350px;
+      }
+
+      .hr {
+        margin: 1px 0;
+      }
 
       .page-break { 
         display:block;
@@ -81,11 +125,14 @@
   </head>
   <body>
     <div id="capa">
-      <h1 class="nt-title">NT Consulting</h1>
+      <div>
+        <h1 class="nt-title">NT Consulting</h1>
       
-      <h1 class="title">Relatório do Inventário físico de estoque da empresa "<%= (count.client.fantasy_name.size > 100)? "#{count.client.fantasy_name[0..115]}..." : count.client.fantasy_name  %>".</h1>
-      
-      <h3 id="data" class="data"><%= count.date.strftime("%d/%m/%Y") %>, Fortaleza - CE</h3>
+        <h1 class="title">Relatório do Inventário físico de estoque da empresa "<%= (count.client.fantasy_name.size > 100)? "#{count.client.fantasy_name[0..115]}..." : count.client.fantasy_name  %>".</h1>
+
+        <h3 id="data" class="data"><%= count.date.strftime("%d/%m/%Y") %>, Fortaleza - CE</h3>
+        </h3>
+      </div>
     </div>
 
     <div class="page-break"></div>
@@ -96,87 +143,154 @@
       </div>
 
       <h1 class="sub-title">Itens contados </h1>
-      <table style="width:100%;">
-        <tr>
-          <th>Cod</th>
-          <th>Descrição</th>
-          <th>Valor (R$)</th>
-          <th>Estoque</th>
-          <th>localização</th>
-          <th>1º Resultado</th>
-          <th>2º Resultado</th>
-          <th>3º Resultado</th>
-          <th>4º Resultado</th>
-          <th>Divergência (%)</th>
-        </tr>
-        <% value_pre_count = 0 %>
-        <% value_pos_count = 0 %>
-        <% quantity_pre_count = 0 %>
-        <% quantity_pos_count = 0 %>
-        <% count.counts_products.each do |cp| %>
-          <tr>
-            <td><%= cp.product.code %></td>
-            <td><%= cp.product.description %></td>
-            <td><%= cp.product.value %></td>
-            <td><%= cp.product.current_stock %></td>
-            <td><%= cp.product.location["locations"] %>
-            <td><%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %></td>
-            <td><%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %></td>
-            <td><%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %></td>
-            <td><%= cp.results[3].blank?? '-' : cp.results[3].quantity_found %></td>
-            <% quantity_found = 0 %>
-            <% if !cp.results[3].blank? %>
-              <% quantity_found += cp.results[3].quantity_found %>
-            <% elsif !cp.results[2].blank? %>
-              <% quantity_found += cp.results[2].quantity_found %>
-            <% else %>
-              <% quantity_found += cp.results[1].quantity_found %>
-            <%end%>
-            <% value_pre_count += cp.product.value * cp.product.current_stock %>
-            <% value_pos_count += cp.product.value * quantity_found %>
-            <% quantity_pre_count += cp.product.current_stock %>
-            <% quantity_pos_count += quantity_found %>
-            <td><%= 100 - ((quantity_found*100)/cp.product.current_stock) %></td>
-          </tr>
-        <% end %>
-      </table>
+      <% value_pre_count = 0 %>
+      <% value_pos_count = 0 %>
+      <% quantity_pre_count = 0 %>
+      <% quantity_pos_count = 0 %>
+      <% [0,1,2,3,4,5,6,7,8,9,10].each do |a| %>
+      <% count.counts_products.each do |cp| %>
+        <div class="card">
+          <h2><%= cp.product.code %> - <%= cp.product.description %></h2>
+          <div class="row">
+            <div class="item-produto">
+              <h3>Valor unitário</h3> R$ <%= cp.product.value %>
+            </div>  
+            
+            <div class="item-produto">
+              <h3>Estoque</h3> <%= cp.product.current_stock %>
+            </div>
+            
+            <div class="item-produto">
+              <h3>Valor total</h3> R$ <%= cp.product.current_stock * cp.product.value %>
+            </div>
+          </div>
+          
+          <br>
+          <hr class="hr">
+          <br>
+          
+          <h2>Localizações</h2>
+          <div class="row">
+            <div class="item">
+              <h3>Rua</h3>
+            </div>  
+            
+            <div class="item">
+              <h3>Prateleira</h3>
+            </div>
+            
+            <div class="item">
+              <h3>Estante</h3>
+            </div>
+          </div>
+          
+          <% cp.product.location["locations"].each do |location| %>
+            <div class="row">
+              <div class="item">
+                <%= location["street"] %>
+              </div>
+              
+              <div class="item">
+                <%= location["stand"] %>
+              </div>
+              
+              <div class="item">
+                <%= location["shelf"] %>
+              </div>
+            </div>
+          <% end %>
+          
+          <br>
+          <hr class="hr">
+          <br>
+          
+          <% quantity_found = 0 %>
+          <% if !cp.results[3].blank? %>
+            <% quantity_found += cp.results[3].quantity_found %>
+          <% elsif !cp.results[2].blank? %>
+            <% quantity_found += cp.results[2].quantity_found %>
+          <% else %>
+            <% quantity_found += cp.results[1].quantity_found %>
+          <%end%>
+          <% value_pre_count += cp.product.value * cp.product.current_stock %>
+          <% value_pos_count += cp.product.value * quantity_found %>
+          <% quantity_pre_count += cp.product.current_stock %>
+          <% quantity_pos_count += quantity_found %>
 
-      <div class="hr">
-        <hr>
-      </div>
-      
-      <h1 class="sub-title">Resultado final da  contagem </h1>
-      
-      <table style="width:100%;">
-        <tr>
-          <th>Valor inicial inventário (R$)</th>
-          <th>Valor final inventário (R$)</th>
-          <th>Divergência total (%)</th>
-        </tr>
-        <tr>
-          <td><%= value_pre_count %></td>
-          <td><%= value_pos_count %></td>
-          <td><%= (value_pos_count*100)/value_pre_count %></td>
-        </tr>  
-      </table>
+          <h2>Contagens</h2>
+          <div class="row">
+            <div class="item">
+              <h3>1° contagem</h3> <%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %>
+            </div>  
 
-      <div class="hr">
-        <hr>
-      </div>
-      
-      <h1 class="sub-title">Informações por operador</h1>
-      <table style="width:100%;">
-        <tr>
-          <th>Nome</th>
-          <th>Quantidade de itens</th>
-        </tr>
+            <div class="item">
+              <h3>2° contagem</h3> <%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %>
+            </div>
+
+            <div class="item">
+              <h3>3° contagem</h3> <%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %>
+            </div>  
+
+            <div class="item">
+              <h3>4° contagem</h3> <%= cp.results[3].blank?? '-' : cp.results[3].quantity_found %>
+            </div>
+
+            <div class="item">
+              <h3>Divergência</h3> <%= 100 - ((quantity_found*100)/cp.product.current_stock) %>%
+            </div> 
+          </div>
+        </div>
+
+        <br>
+      <% end %>
+      <% end %>
+
+      <br>
+
+      <div class="card">
+        <h2>Resultado final da contagem</h2>
+        <div class="row">
+          <div class="item-medium">
+            <h3>Valor inicial inventário</h3> R$ <%= value_pre_count %>
+          </div>  
+          
+          <div class="item-medium">
+            <h3>Valor final inventário</h3> R$ <%= value_pos_count %>
+          </div>
+          
+          <div class="item-medium">
+            <h3>Acuracidade</h3> <%= (value_pos_count*100)/value_pre_count %>%
+          </div>
+        </div>
+      </div> 
+
+      <br>
+
+      <div class="card">
+        <h2>Informações por operador</h2>
+        <div class="row">
+          <div class="item-large">
+            <h3>Nome</h3>
+          </div>  
+          
+          <div class="item-large">
+            <h3>Quantidade de itens</h3>
+          </div>
+        </div>
+        
+        <!--  Loop nessa div abaixo  -->
         <% count.employees.each do |employee| %>
-          <tr>
-            <td><%= employee.name %></td>
-            <td><%= employee.counted_products(count.id) %></td>
-          </tr>
+          <div class="row">
+            <div class="item-large">
+              <%= employee.name %>
+            </div>
+            
+            <div class="item-large">
+              <%= employee.counted_products(count.id) %>
+            </div>
+          </div>
         <% end %>
-      </table>
+      </div>
     </div>
   </body>
 </html>
