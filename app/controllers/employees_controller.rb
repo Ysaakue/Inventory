@@ -3,7 +3,7 @@ class EmployeesController < ApplicationController
   
   def index
     @employees = Employee.all
-    render json: @employees
+    render json: @employees.as_json(index: true)
   end
   
   def show

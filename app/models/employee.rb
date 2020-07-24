@@ -1,5 +1,7 @@
 class Employee < ApplicationRecord
   has_and_belongs_to_many :counts, join_table: "counts_employees"
+  has_many :results
+  has_and_belongs_to_many :counts
 
   validates :name, presence: { message: "Nome não pode ficar em branco" }
   validates :cpf, presence: { message: "CPF não pode ficar em branco" }
@@ -11,10 +13,24 @@ class Employee < ApplicationRecord
   end
 
   def as_json options={}
-    {
-      id: id,
-      name: name,
-      cpf: cpf
-    }
+    index = if options && options.key?(:index)
+      options[:index]
+    end
+    if index
+      {
+        id: id,
+        name: name,
+        cpf: cpf,
+        counts: counts.size,
+        items_counted: results.size
+      }
+    else
+      {
+        id: id,
+        name: name,
+        cpf: cpf
+      }
+    end
+    
   end
 end
