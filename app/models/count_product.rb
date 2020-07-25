@@ -13,7 +13,7 @@ class CountProduct < ApplicationRecord
       product_unit_measurement: product.unit_measurement,
       product_value: product.value,
       client: product.client.fantasy_name,
-      locations: product.location["locations"],
+      locations: (!product.location.blank? && !product.location["locations"].blank?)? product.location["locations"] : [],
       quantity_found: results
     }
   end

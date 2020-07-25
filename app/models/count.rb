@@ -23,13 +23,25 @@ class Count < ApplicationRecord
   end
 
   def as_json option={}
-    {
-      id: id,
-      date: date,
-      status: status,
-      client: client.fantasy_name,
-      products: counts_products
-    }
+    index = if options && options.key?(:index)
+      options[:index]
+    end
+    if index
+      {
+        id: id,
+        date: date,
+        status: status,
+        client: client.fantasy_name,
+      }
+    else
+      {
+        id: id,
+        date: date,
+        status: status,
+        client: client.fantasy_name,
+        products: counts_products
+      }
+    end
   end
 
 

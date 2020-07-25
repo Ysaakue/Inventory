@@ -66,7 +66,7 @@ class ProductsController < ApplicationController
         client_id: params[:client_id]
       )
       if product.location == nil
-        product.location = []
+        product.location = {}
       end
       if product.save
         saved+=1
