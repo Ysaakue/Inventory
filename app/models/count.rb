@@ -22,7 +22,7 @@ class Count < ApplicationRecord
     end
   end
 
-  def as_json option={}
+  def as_json options={}
     index = if options && options.key?(:index)
       options[:index]
     end
@@ -68,6 +68,7 @@ class Count < ApplicationRecord
     two = 0
     three = 0
     four = 0
+    status = ""
     self.counts_products.each do |cp|
       if !cp.combined_count?
         if cp.results.size == 1
@@ -84,6 +85,7 @@ class Count < ApplicationRecord
     if self.first_count? && one == 0
       self.second_count!
       self.save!
+      status = self.status
     elsif self.second_count? && two == 0
       if three != 0
         self.third_count!
@@ -91,6 +93,7 @@ class Count < ApplicationRecord
         self.completed!
       end
       self.save!
+      status = self.status
     elsif self.third_count? && three == 0
       if four != 0
         self.fourth_count_pending!
@@ -98,9 +101,19 @@ class Count < ApplicationRecord
         self.completed!
       end
       self.save!
+      status = self.status
     elsif self.fourth_count? && four == 0
       self.completed!
       self.save!
+      status = self.status
+    end
+
+    if status != ""
+      msg = {
+        id: self.id,
+        status: status
+      }
+      $redis.publish "count_status_#{self.id}", msg.to_json
     end
   end
 

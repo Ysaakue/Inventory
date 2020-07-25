@@ -7,17 +7,17 @@ class CountsController < ApplicationController
 
   def index
     @counts = Count.all
-    render json: @counts
+    render json: @counts.as_json(index: true)
   end
 
   def index_by_client
     @counts = @client.counts
-    render json: @counts
+    render json: @counts.as_json(index: true)
   end
 
   def index_by_employee
     @counts = @employee.counts.not_completed.not_fourth_count_pending
-    render json: @counts
+    render json: @counts.as_json(index: true)
   end
   
   def show
