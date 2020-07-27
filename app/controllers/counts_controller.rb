@@ -129,7 +129,6 @@ class CountsController < ApplicationController
     if @count.fourth_count_released?
       @count.employee_ids << params[:count][:employee_id]
       @count.fourth_count_employee = params[:count][:employee_id]
-      @count.fourth_count!
     else
       @count.completed!
     end
@@ -138,7 +137,7 @@ class CountsController < ApplicationController
         "status": "success",
         "data": @count
       }
-      @count.verify_count
+      @count.generate_fourth_results
     else
       render json:{
         "status": "error",

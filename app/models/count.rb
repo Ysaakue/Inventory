@@ -128,6 +128,8 @@ class Count < ApplicationRecord
           ).save!
         end
       end
+      @count.fourth_count!
+      @count.save
     end
   end
 
