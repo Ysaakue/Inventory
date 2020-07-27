@@ -132,7 +132,7 @@ class CountsController < ApplicationController
     else
       @count.completed!
     end
-    if @count.save
+    if @count.save(validate: false)
       render json:{
         "status": "success",
         "data": @count
