@@ -16,7 +16,7 @@ class CountsController < ApplicationController
   end
 
   def index_by_employee
-    @counts = @employee.counts.not_completed.not_fourth_count_pending
+    @counts = @employee.counts.where('status != 4 or fourth_count_employee =?', @employee.id).not_completed.not_fourth_count_pending
     render json: @counts.as_json(index: true)
   end
   
@@ -127,7 +127,8 @@ class CountsController < ApplicationController
   def fourth_count_release
     @count.fourth_count_released = params[:count][:fourth_count_release]
     if @count.fourth_count_released?
-      @count.employee_ids = params[:count][:employee_id]
+      @count.employee_ids << params[:count][:employee_id]
+      @count.fourth_count_employee = params[:count][:employee_id]
       @count.fourth_count!
     else
       @count.completed!
