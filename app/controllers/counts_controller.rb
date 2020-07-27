@@ -64,7 +64,7 @@ class CountsController < ApplicationController
 
   def submit_quantity_found
     cp = CountProduct.find_by(count_id: params[:count][:count_id], product_id: params[:count][:product_id])
-    if !cp.count.completed? || cp.count.fourth_count_pending?
+    if !cp.count.completed? || cp.count.fourth_count_pending? || cp.combined_count?
       if cp.count.first_count?
         result = cp.results[0]
       elsif cp.count.second_count?
@@ -73,10 +73,6 @@ class CountsController < ApplicationController
         end
         result = cp.results[1]
       elsif cp.count.third_count?
-        if  cp.results[0].employee_id == params[:count][:employee_id] ||
-            cp.results[1].employee_id == params[:count][:employee_id]
-          employee_already_count_this_product = true
-        end
         result = cp.results[2]
       elsif cp.count.fourth_count?
         result = cp.results[3]
@@ -114,6 +110,11 @@ class CountsController < ApplicationController
         render json:{
           status: "success",
           data: "A quarta etapa da contagem precisa ser liberada por um administrador."
+        }
+      elsif cp.combined_count?
+        render json:{
+          status: "success",
+          data: "Não há divergências na contagem desse produto."
         }
       else
         render json:{
