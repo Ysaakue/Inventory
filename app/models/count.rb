@@ -5,7 +5,7 @@ class Count < ApplicationRecord
   after_create :prepare_count
   after_update :verify_count
 
-  validate :date_not_retrograde
+  validate :date_not_retrograde, :on => :create
 
   enum status: [
     :first_count,
