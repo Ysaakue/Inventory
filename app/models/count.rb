@@ -5,6 +5,7 @@ class Count < ApplicationRecord
   after_create :prepare_count
   after_update :verify_count
 
+  validates :cnpj, uniqueness: { message: "Já existe um cliente com esse CNPJ" }
   validate :date_not_retrograde
 
   enum status: [
