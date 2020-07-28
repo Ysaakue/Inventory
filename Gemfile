@@ -60,3 +60,6 @@ gem "daemons"
 # Generate PDF files
 gem 'wkhtmltopdf-binary'
 gem 'wicked_pdf'
+
+# Use redis to publish count status to subscribes of node server
+gem 'redis'
