@@ -7,18 +7,16 @@ default: &default
 
 development:
   <<: *default
+  adapter: <%= Figaro.env.adapter %>
+  encoding: <%= Figaro.env.encoding %>
   database: <%= Figaro.env.database_name %>
   username: <%= Figaro.env.database_username %>
   password: <%= Figaro.env.database_password %>
   url: <%= Figaro.env.DATABASE_URL %>
 
 production:
-  # <<: *default
-  # database: <%= Figaro.env.database_name %>
-  # username: <%= Figaro.env.database_username %>
-  # password: <%= Figaro.env.database_password %>
-  adapter: postgresql
-  encoding: unicode
+  adapter: <%= Figaro.env.adapter %>
+  encoding: <%= Figaro.env.encoding %>
   database: <%= Figaro.env.database_name %>
   pool: 5
   host: <%= Figaro.env.database_host %>
