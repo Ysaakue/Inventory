@@ -172,10 +172,12 @@ class Count < ApplicationRecord
         streets = []
         stands  = []
         shelfs  = []
-        cp.product.location["locations"].each do |location|
-          streets << location["street"]
-          stands  << location["stand"]
-          shelfs  << location["shelf"]
+        if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+          cp.product.location["locations"].each do |location|
+            streets << location["street"]
+            stands  << location["stand"]
+            shelfs  << location["shelf"]
+          end
         end
         row << streets.join(',') #RUA
         row << stands.join(',') #ESTANTE
