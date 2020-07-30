@@ -4,7 +4,7 @@ class Employee < ApplicationRecord
   has_and_belongs_to_many :counts
 
   validates :name, presence: { message: "Nome não pode ficar em branco" }
-  validates :cpf, uniqueness: { message: "Já existe um cliente com esse CNPJ" }
+  validates :cpf, uniqueness: { message: "Já existe um operador com esse CPF" }
   validates :cpf, presence: { message: "CPF não pode ficar em branco" }
 
   def counted_products(count_id)

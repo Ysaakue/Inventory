@@ -39,6 +39,7 @@ class Count < ApplicationRecord
         date: date,
         status: status,
         client: client.fantasy_name,
+        employees: employees,
         products: counts_products
       }
     end
