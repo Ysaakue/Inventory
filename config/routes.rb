@@ -16,7 +16,7 @@ Rails.application.routes.draw do
   end
   get '/counts', to: 'counts#index'
   get '/counts/:id/report_pdf', to: 'counts#report_pdf'
-  get '/counts/:id/report_csv', to: 'counts#report_csv'
+  get '/counts/:id/report_csv(.:format)', to: 'counts#report_csv'
   get '/counts/:id/report_data', to: 'counts#report_data'
   put '/submit_result', to: 'counts#submit_quantity_found'
   post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'

@@ -188,6 +188,17 @@ class Count < ApplicationRecord
       end
     end
   end
+  
+  def build_csv_enumerator
+    header = [
+      "COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA",
+      "ESTANTE","PRATELEIRA","VLR TOTAL FINAL","RESULTADO VLR %"
+    ]
+    Enumerator.new do |y|
+      CsvBuilder.new(header, self, y).build
+    end
+  end
 
   # Define asynchronous tasks
   handle_asynchronously :prepare_count

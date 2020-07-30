@@ -154,9 +154,17 @@ class CountsController < ApplicationController
   end
 
   def report_csv
-    file = Count.to_csv(@count)
-
-    send_data file, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.csv"
+    respond_to do |format|
+      format.csv do
+        headers["X-Accel-Buffering"] = "no"
+        headers["Cache-Control"] = "no-cache"
+        headers["Content-Type"] = "text/csv; charset=utf-8"
+        headers["Content-Disposition"] =
+          %(attachment; filename="relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.csv")
+        headers["Last-Modified"] = Time.zone.now.ctime.to_s
+        self.response_body = @count.build_csv_enumerator
+      end
+    end
   end
 
   def report_data
