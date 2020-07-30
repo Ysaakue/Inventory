@@ -5,6 +5,8 @@ class Client < ApplicationRecord
   belongs_to :city
   belongs_to :state
 
+  validates :cnpj, uniqueness: { message: "Já existe um cliente com esse CNPJ" }
+
   def as_json option={}
     {
       id: id,
