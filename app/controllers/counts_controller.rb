@@ -2,7 +2,7 @@ class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report,:report_data
+    :show,:update,:destroy,:fourth_count_release,:report_pdf,:report_csv,:report_data
   ]
 
   def index
@@ -147,10 +147,16 @@ class CountsController < ApplicationController
     end
   end
 
-  def report
+  def report_pdf
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
     pdf = WickedPdf.new.pdf_from_string(pdf_html)
     send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+  end
+
+  def report_csv
+    file = Count.to_csv(@count)
+
+    send_data file, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.csv"
   end
 
   def report_data
@@ -201,11 +207,10 @@ class CountsController < ApplicationController
             params[:count][:location]
           ]
         }
-        cp.product.save!
       else
         cp.product.location["locations"] << params[:count][:location]
-        cp.product.save!
       end
+      cp.product.save!
     end
   end
 end

@@ -144,6 +144,49 @@ class Count < ApplicationRecord
     temp_employees
   end
 
+  def self.to_csv(count)
+    cols = [
+      "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+      "PRATELEIRA","VLR TOTAL FINAL","RESULTADO VLR %"
+    ]
+
+    CSV.generate(headers: true) do |csv|
+      csv << cols
+
+      count.counts_products.each do |cp|
+        row = []
+        row << count.client.fantasy_name #EMPRESA
+        row << cp.product.code #COD
+        row << cp.product.description #MATERIAL
+        row << cp.product.unit_measurement #UND
+        row << cp.product.value #VLR UNIT
+        row << cp.product.value * cp.product.current_stock #VLRT TOTAL
+        row << cp.product.current_stock #SALDO INICIAL
+        row << (cp.results[0].blank?? '-' : cp.results[0].quantity_found) #CONT 1
+        row << (cp.results[1].blank?? '-' : cp.results[1].quantity_found) #CONT 2
+        row << (cp.results[2].blank?? '-' : cp.results[2].quantity_found) #CONT 3
+        row << (cp.results[3].blank?? '-' : cp.results[3].quantity_found) #CONT 4
+        row << cp.results.last.quantity_found #SALDO FINAL
+        row << (cp.results.last.quantity_found*100)/cp.product.current_stock #RESULTADO %
+        streets = []
+        stands  = []
+        shelfs  = []
+        cp.product.location["locations"].each do |location|
+          streets << location["street"]
+          stands  << location["stand"]
+          shelfs  << location["shelf"]
+        end
+        row << streets.join(',') #RUA
+        row << stands.join(',') #ESTANTE
+        row << shelfs.join(',') #PRATELEIRA
+        row << cp.results.last.quantity_found * cp.product.value #VLR TOTAL FINAL
+        row << ((cp.results.last.quantity_found * cp.product.value)*100)/(cp.product.current_stock * cp.product.value) #RESULTADO VLR %
+        csv << row
+      end
+    end
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count
