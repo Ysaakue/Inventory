@@ -62,6 +62,9 @@ class CountsController < ApplicationController
   def create
     @count = Count.new(count_params)
     @count.client_id = params[:client_id]
+    if @count.products_quantity_to_count == nil
+      @count.products_quantity_to_count = @count.client.products.size
+    end
     if @count.save
       render json:{
         "status": "success",
@@ -216,7 +219,7 @@ class CountsController < ApplicationController
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:flags,:client_id,
+      :date,:status,:client_id,:products_quantity_to_count,
       employee_ids: []
     )
   end

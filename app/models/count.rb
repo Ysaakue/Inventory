@@ -47,9 +47,13 @@ class Count < ApplicationRecord
     end
   end
 
-
   def prepare_count
-    self.client.products.each do |product|
+    temp_products = self.client.products
+    if self.products_quantity_to_count < client.products.size
+      temp_products = temp_products.shuffle
+      temp_products = temp_products[0..products_quantity_to_count-1]
+    end
+    temp_products.each do |product|
       cp = CountProduct.new(
         product_id: product.id,
         count_id: self.id,
