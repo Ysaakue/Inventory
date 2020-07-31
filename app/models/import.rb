@@ -25,6 +25,7 @@ class Import < ApplicationRecord
         product_created.current_stock = product["current_stock"],
         product_created.value = product["value"],
         product_created.unit_measurement = product["unit_measurement"],
+        product_created.active = true
         if product_created.save
           edited+=1
         end

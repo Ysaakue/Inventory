@@ -3,7 +3,7 @@ class ProductsController < ApplicationController
   before_action :set_client, only: [:index]
   
   def index
-    @products = @client.products
+    @products = @client.products.active
     render json: @products
   end
   
