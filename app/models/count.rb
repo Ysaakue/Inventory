@@ -48,7 +48,7 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
-    temp_products = self.client.products.active
+    temp_products = self.client.products.where(active: true)
     if self.products_quantity_to_count < temp_products.size
       temp_products = temp_products.shuffle
       temp_products = temp_products[0..products_quantity_to_count-1]

@@ -66,7 +66,7 @@ class CountsController < ApplicationController
     @count = Count.new(count_params)
     @count.client_id = params[:client_id]
     if @count.products_quantity_to_count == nil
-      @count.products_quantity_to_count = @count.client.products.active.size
+      @count.products_quantity_to_count = @count.client.products.where(active: true).size
     end
     if @count.save
       render json:{
