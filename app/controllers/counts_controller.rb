@@ -149,17 +149,17 @@ class CountsController < ApplicationController
     else
       if cp.count.fourth_count_pending?
         render json:{
-          status: "success",
+          status: "error",
           data: "A quarta etapa da contagem precisa ser liberada por um administrador."
         }
       elsif cp.combined_count?
         render json:{
-          status: "success",
+          status: "error",
           data: "Não há divergências na contagem desse produto."
         }
       else
         render json:{
-          status: "success",
+          status: "error",
           data: "A contagem já foi encerrada."
         }
       end
