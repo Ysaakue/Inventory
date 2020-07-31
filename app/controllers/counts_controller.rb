@@ -247,9 +247,8 @@ class CountsController < ApplicationController
           params[:count][:location]
         ]
       }
-      cp.product.save!
     else
-      if cp.product.location[:id] != params[:count][:count_id]
+      if cp.product.location["id"] != params[:count][:count_id]
         cp.product.location = {
           id: params[:count][:count_id],
           locations: [
