@@ -21,7 +21,41 @@ class CountsController < ApplicationController
   end
   
   def show
-    render json: @count
+    page = 0
+    quantity = 50
+    if request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+      quant = request.query_parameters["quant"].to_i
+    end
+    if request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+      page = request.query_parameters["pag"].to_i
+    end
+    max = @count.counts_products.size
+    total_pages = max / quantity
+    array_start = 0
+    array_end = max-1
+    
+    if total_pages > 1 && page <= total_pages
+      array_start = page * quantity
+      if (array_start + quantity) < (max-1)
+        array_end = array_start + quantity
+      end
+    end
+
+    render json: {
+      current_page: page,
+      current_quantity_per_page: quantity,
+      total_quantity: max,
+      current_start: array_start,
+      current_end: array_end,
+      count: {
+        id: @count.id,
+        date: @count.date,
+        status: @count.status,
+        client: @count.client.fantasy_name,
+        employees: @count.employees,
+        products: @count.counts_products[array_start..array_end]
+      }
+    }
   end
   
   def create
