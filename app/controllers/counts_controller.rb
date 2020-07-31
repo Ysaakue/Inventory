@@ -24,20 +24,23 @@ class CountsController < ApplicationController
     page = 0
     quantity = 50
     if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
-      quant = request.query_parameters["quant"].to_i
+      quantity = request.query_parameters["quant"].to_i
     end
     if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
-      page = request.query_parameters["pag"].to_i
+      page = request.query_parameters["pag"].to_i - 1
     end
     max = @count.counts_products.size
-    total_pages = max / quantity
+    if max % quantity > 0
+      total_pages = (max / quantity) + 1
+    else
+      total_pages = (max / quantity)
+    end
     array_start = 0
     array_end = max-1
-    
     if total_pages > 1 && page <= total_pages
       array_start = page * quantity
-      if (array_start + quantity) < (max-1)
-        array_end = array_start + quantity
+      if (array_start + quantity - 1) < (max-1)
+        array_end = array_start + quantity - 1
       end
     end
 
