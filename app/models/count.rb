@@ -2,6 +2,8 @@ class Count < ApplicationRecord
   belongs_to :client
   has_and_belongs_to_many :employees, join_table: "counts_employees"
   has_many :counts_products, class_name: "CountProduct"
+  has_many :products, through: :counts_products
+
   after_create :prepare_count
   after_update :verify_count
 

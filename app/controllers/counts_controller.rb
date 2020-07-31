@@ -53,7 +53,7 @@ class CountsController < ApplicationController
         status: @count.status,
         client: @count.client.fantasy_name,
         employees: @count.employees,
-        products: @count.counts_products[array_start..array_end]
+        products: @count.products[array_start..array_end].as_json(import: true)
       }
     }
   end
