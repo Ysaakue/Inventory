@@ -47,13 +47,14 @@ class CountsController < ApplicationController
       total_quantity: max,
       current_start: array_start,
       current_end: array_end,
+      total_pages: total_pages,
       count: {
         id: @count.id,
         date: @count.date,
         status: @count.status,
         client: @count.client.fantasy_name,
         employees: @count.employees,
-        products: @count.products[array_start..array_end].as_json(import: true)
+        products: @count.counts_products[array_start..array_end].as_json(import: true)
       }
     }
   end
