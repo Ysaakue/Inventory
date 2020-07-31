@@ -23,10 +23,10 @@ class CountsController < ApplicationController
   def show
     page = 0
     quantity = 50
-    if request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+    if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
       quant = request.query_parameters["quant"].to_i
     end
-    if request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+    if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
       page = request.query_parameters["pag"].to_i
     end
     max = @count.counts_products.size
