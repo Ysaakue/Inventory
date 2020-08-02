@@ -28,6 +28,3 @@
 
 # Ignore application configuration
 /config/application.yml
-
-# Node modules for realtime node server
-realtime/node_modules/*
