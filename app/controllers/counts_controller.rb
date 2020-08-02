@@ -2,7 +2,7 @@ class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report,:report_data
+    :show,:update,:destroy,:fourth_count_release,:report_pdf,:report_csv,:report_data
   ]
 
   def index
@@ -21,12 +21,53 @@ class CountsController < ApplicationController
   end
   
   def show
-    render json: @count
+    page = 0
+    quantity = 50
+    if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+      quantity = request.query_parameters["quant"].to_i
+    end
+    if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+      page = request.query_parameters["pag"].to_i - 1
+    end
+    max = @count.counts_products.size
+    if max % quantity > 0
+      total_pages = (max / quantity) + 1
+    else
+      total_pages = (max / quantity)
+    end
+    array_start = 0
+    array_end = max-1
+    if total_pages > 1 && page <= total_pages
+      array_start = page * quantity
+      if (array_start + quantity - 1) < (max-1)
+        array_end = array_start + quantity - 1
+      end
+    end
+
+    render json: {
+      current_page: page,
+      current_quantity_per_page: quantity,
+      total_quantity: max,
+      current_start: array_start,
+      current_end: array_end,
+      total_pages: total_pages,
+      count: {
+        id: @count.id,
+        date: @count.date,
+        status: @count.status,
+        client: @count.client.fantasy_name,
+        employees: @count.employees,
+        products: @count.counts_products[array_start..array_end].as_json(import: true)
+      }
+    }
   end
   
   def create
     @count = Count.new(count_params)
     @count.client_id = params[:client_id]
+    if @count.products_quantity_to_count == nil
+      @count.products_quantity_to_count = @count.client.products.where(active: true).size
+    end
     if @count.save
       render json:{
         "status": "success",
@@ -108,17 +149,17 @@ class CountsController < ApplicationController
     else
       if cp.count.fourth_count_pending?
         render json:{
-          status: "success",
+          status: "error",
           data: "A quarta etapa da contagem precisa ser liberada por um administrador."
         }
       elsif cp.combined_count?
         render json:{
-          status: "success",
+          status: "error",
           data: "Não há divergências na contagem desse produto."
         }
       else
         render json:{
-          status: "success",
+          status: "error",
           data: "A contagem já foi encerrada."
         }
       end
@@ -147,10 +188,24 @@ class CountsController < ApplicationController
     end
   end
 
-  def report
+  def report_pdf
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
     pdf = WickedPdf.new.pdf_from_string(pdf_html)
     send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+  end
+
+  def report_csv
+    respond_to do |format|
+      format.csv do
+        headers["X-Accel-Buffering"] = "no"
+        headers["Cache-Control"] = "no-cache"
+        headers["Content-Type"] = "text/csv; charset=utf-8"
+        headers["Content-Disposition"] =
+          %(attachment; filename="relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.csv")
+        headers["Last-Modified"] = Time.zone.now.ctime.to_s
+        self.response_body = @count.build_csv_enumerator
+      end
+    end
   end
 
   def report_data
@@ -167,7 +222,7 @@ class CountsController < ApplicationController
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:flags,:client_id,
+      :date,:status,:client_id,:products_quantity_to_count,
       employee_ids: []
     )
   end
@@ -192,20 +247,18 @@ class CountsController < ApplicationController
           params[:count][:location]
         ]
       }
-      cp.product.save!
     else
-      if cp.product.location[:id] != params[:count][:count_id]
+      if cp.product.location["id"] != params[:count][:count_id]
         cp.product.location = {
           id: params[:count][:count_id],
           locations: [
             params[:count][:location]
           ]
         }
-        cp.product.save!
       else
         cp.product.location["locations"] << params[:count][:location]
-        cp.product.save!
       end
+      cp.product.save!
     end
   end
 end

@@ -3,7 +3,7 @@ class ProductsController < ApplicationController
   before_action :set_client, only: [:index]
   
   def index
-    @products = @client.products
+    @products = @client.products.where(active: true)
     render json: @products
   end
   
@@ -50,32 +50,6 @@ class ProductsController < ApplicationController
     else
       render json:{"status": "error"}
     end
-  end
-
-  def import
-    total = 0
-    saved = 0
-    params[:products].each do |product|
-      total+=1
-      product = Product.new(
-        description: product[:description],
-        code: product[:code],
-        current_stock: product[:current_stock],
-        value: product[:value],
-        unit_measurement: product[:unit_measurement],
-        client_id: params[:client_id]
-      )
-      if product.location == nil
-        product.location = {}
-      end
-      if product.save
-        saved+=1
-      end
-    end
-    render json:{
-      "status": "success",
-      "data": "Foram registrados #{saved} produtos de um total de #{total}"
-    }
   end
 
   private

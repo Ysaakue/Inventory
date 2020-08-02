@@ -2,10 +2,11 @@ class Count < ApplicationRecord
   belongs_to :client
   has_and_belongs_to_many :employees, join_table: "counts_employees"
   has_many :counts_products, class_name: "CountProduct"
+  has_many :products, through: :counts_products
+
   after_create :prepare_count
   after_update :verify_count
 
-  validates :cnpj, uniqueness: { message: "Já existe um cliente com esse CNPJ" }
   validate :date_not_retrograde
 
   enum status: [
@@ -40,14 +41,19 @@ class Count < ApplicationRecord
         date: date,
         status: status,
         client: client.fantasy_name,
+        employees: employees,
         products: counts_products
       }
     end
   end
 
-
   def prepare_count
-    self.client.products.each do |product|
+    temp_products = self.client.products.where(active: true)
+    if self.products_quantity_to_count < temp_products.size
+      temp_products = temp_products.shuffle
+      temp_products = temp_products[0..products_quantity_to_count-1]
+    end
+    temp_products.each do |product|
       cp = CountProduct.new(
         product_id: product.id,
         count_id: self.id,
@@ -143,6 +149,62 @@ class Count < ApplicationRecord
       }
     end
     temp_employees
+  end
+
+  def self.to_csv(count)
+    cols = [
+      "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+      "PRATELEIRA","VLR TOTAL FINAL","RESULTADO VLR %"
+    ]
+
+    CSV.generate(headers: true) do |csv|
+      csv << cols
+
+      count.counts_products.each do |cp|
+        row = []
+        row << count.client.fantasy_name #EMPRESA
+        row << cp.product.code #COD
+        row << cp.product.description #MATERIAL
+        row << cp.product.unit_measurement #UND
+        row << cp.product.value #VLR UNIT
+        row << cp.product.value * cp.product.current_stock #VLRT TOTAL
+        row << cp.product.current_stock #SALDO INICIAL
+        row << (cp.results[0].blank?? '-' : cp.results[0].quantity_found) #CONT 1
+        row << (cp.results[1].blank?? '-' : cp.results[1].quantity_found) #CONT 2
+        row << (cp.results[2].blank?? '-' : cp.results[2].quantity_found) #CONT 3
+        row << (cp.results[3].blank?? '-' : cp.results[3].quantity_found) #CONT 4
+        row << cp.results.last.quantity_found #SALDO FINAL
+        row << (cp.results.last.quantity_found*100)/cp.product.current_stock #RESULTADO %
+        streets = []
+        stands  = []
+        shelfs  = []
+        if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+          cp.product.location["locations"].each do |location|
+            streets << location["street"]
+            stands  << location["stand"]
+            shelfs  << location["shelf"]
+          end
+        end
+        row << streets.join(',') #RUA
+        row << stands.join(',') #ESTANTE
+        row << shelfs.join(',') #PRATELEIRA
+        row << cp.results.last.quantity_found * cp.product.value #VLR TOTAL FINAL
+        row << ((cp.results.last.quantity_found * cp.product.value)*100)/(cp.product.current_stock * cp.product.value) #RESULTADO VLR %
+        csv << row
+      end
+    end
+  end
+  
+  def build_csv_enumerator
+    header = [
+      "COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA",
+      "ESTANTE","PRATELEIRA","VLR TOTAL FINAL","RESULTADO VLR %"
+    ]
+    Enumerator.new do |y|
+      CsvBuilder.new(header, self, y).build
+    end
   end
 
   # Define asynchronous tasks

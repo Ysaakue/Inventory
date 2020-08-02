@@ -4,8 +4,8 @@ Rails.application.routes.draw do
   get "states/:state_id/cities", to: "cities#index"
   resources :clients, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
-    resources :counts, except: [:index,:new,:edit] do
-    end
+    resources :counts, except: [:index,:new,:edit]
+    resources :imports, only: [:index,:show]
     get '/counts', to: 'counts#index_by_client'
   end
   resources :employees, except: [:new,:edit] do
@@ -14,10 +14,11 @@ Rails.application.routes.draw do
       get ':employee_id/counts', to: 'counts#index_by_employee'
     end
   end
-  post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'
-  post '/clients/:client_id/products/import', to: 'products#import'
-  put '/submit_result', to: 'counts#submit_quantity_found'
   get '/counts', to: 'counts#index'
-  get '/counts/:id/report', to: 'counts#report'
+  get '/counts/:id/report_pdf', to: 'counts#report_pdf'
+  get '/counts/:id/report_csv(.:format)', to: 'counts#report_csv'
   get '/counts/:id/report_data', to: 'counts#report_data'
+  put '/submit_result', to: 'counts#submit_quantity_found'
+  post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'
+  post '/clients/:client_id/products/import', to: 'imports#create'
 end
