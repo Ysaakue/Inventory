@@ -50,5 +50,8 @@ module Inventory
         )
       end
     end
+
+    # Host and Port to redis
+    $redis = Redis.new(:host => 'localhost', :port=> 6379)
   end
 end
