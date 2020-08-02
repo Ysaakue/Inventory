@@ -115,13 +115,16 @@ class Count < ApplicationRecord
       status = self.status
     end
 
-    if status != ""
-      msg = {
-        id: self.id,
-        status: status
-      }
-      $redis.publish "count_status_#{self.id}", msg.to_json
-    end
+    msg = {
+      id: self.id,
+      status: status,
+      status_changed: ((status != "")? true : false),
+      first_count_pending: one,
+      second_count_pending: two,
+      third_count_pending: three,
+      fourth_count_pending: four
+    }
+    $redis.publish "count_status_#{self.id}", msg.to_json
   end
 
   def generate_fourth_results
