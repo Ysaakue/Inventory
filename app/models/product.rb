@@ -28,4 +28,9 @@ class Product < ApplicationRecord
       }
     end
   end
+
+  def self.set_not_new(ids)
+    sql = "update products set new = false where id in (#{ids.join(',')}) "
+    result = ActiveRecord::Base.connection.exec_query(sql)
+  end
 end

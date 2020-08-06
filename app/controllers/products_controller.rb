@@ -4,6 +4,12 @@ class ProductsController < ApplicationController
   
   def index
     @products = @client.products.where(active: true)
+    if !request.query_parameters.blank? && !request.query_parameters["active"].blank? && !request.query_parameters["active"]
+      @products = @client.products
+    end
+    if !request.query_parameters.blank? && !request.query_parameters["new"].blank? && request.query_parameters["active"]
+      @products = @products.where(new: true)
+    end
     render json: @products
   end
   
@@ -50,6 +56,11 @@ class ProductsController < ApplicationController
     else
       render json:{"status": "error"}
     end
+  end
+
+  def set_not_new
+    Product.set_not_new(params[:products])
+    render json:{"status": "success"}, status: 202
   end
 
   private

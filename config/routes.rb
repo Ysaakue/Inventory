@@ -21,4 +21,5 @@ Rails.application.routes.draw do
   put '/submit_result', to: 'counts#submit_quantity_found'
   post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'
   post '/clients/:client_id/products/import', to: 'imports#create'
+  post '/products/set_not_new', to: 'products#set_not_new'
 end
