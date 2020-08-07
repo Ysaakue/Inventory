@@ -258,7 +258,7 @@ class CountsController < ApplicationController
       else
         cp.product.location["locations"] << params[:count][:location]
       end
-      cp.product.save!
     end
+    cp.product.save!
   end
 end
