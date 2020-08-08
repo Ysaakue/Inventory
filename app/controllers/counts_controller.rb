@@ -56,6 +56,9 @@ class CountsController < ApplicationController
         date: @count.date,
         status: @count.status,
         client: @count.client.fantasy_name,
+        initial_value: @count.initial_value,
+        final_value: @count.final_value,
+        accuracy: @count.accuracy,
         employees: @count.employees,
         products: @count.counts_products[array_start..array_end].as_json(import: true)
       }

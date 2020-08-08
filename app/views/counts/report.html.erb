@@ -160,7 +160,7 @@
             </div>
             
             <div class="item-produto">
-              <h3>Valor total</h3> R$ <%= (('%.2f' % (cp.product.value * cp.product.current_stock)).gsub! '.',',') %>
+              <h3>Valor total</h3> R$ <%= (('%.2f' % cp.total_value).gsub! '.',',') %>
             </div>
           </div>
           
@@ -202,19 +202,6 @@
           <br>
           <hr class="hr">
           <br>
-          
-          <% quantity_found = 0 %>
-          <% if !cp.results[3].blank? %>
-            <% quantity_found += cp.results[3].quantity_found %>
-          <% elsif !cp.results[2].blank? %>
-            <% quantity_found += cp.results[2].quantity_found %>
-          <% else %>
-            <% quantity_found += cp.results[1].quantity_found %>
-          <%end%>
-          <% value_pre_count += cp.product.value * cp.product.current_stock %>
-          <% value_pos_count += cp.product.value * quantity_found %>
-          <% quantity_pre_count += cp.product.current_stock %>
-          <% quantity_pos_count += quantity_found %>
 
           <h2>Contagens</h2>
           <div class="row">
@@ -235,7 +222,7 @@
             </div>
 
             <div class="item">
-              <h3>Divergência</h3> <%= 100 - ((quantity_found*100)/cp.product.current_stock) %>%
+              <h3>Divergência</h3> <%= cp.percentage_result_value %>%
             </div> 
           </div>
         </div>
@@ -249,15 +236,15 @@
         <h2>Resultado final da contagem</h2>
         <div class="row">
           <div class="item-medium">
-            <h3>Valor inicial inventário</h3> R$ <%= (('%.2f' % value_pre_count).gsub! '.',',') %>
+            <h3>Valor inicial inventário</h3> R$ <%= (('%.2f' % count.initial_value).gsub! '.',',') %>
           </div>  
           
           <div class="item-medium">
-            <h3>Valor final inventário</h3> R$ <%= (('%.2f' % value_pos_count).gsub! '.',',') %>
+            <h3>Valor final inventário</h3> R$ <%= (('%.2f' % count.final_value).gsub! '.',',') %>
           </div>
           
           <div class="item-medium">
-            <h3>Acuracidade</h3> <%= (value_pos_count*100)/value_pre_count %>%
+            <h3>Acuracidade</h3> <%= count.accuracy %>%
           </div>
         </div>
       </div> 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_06_190800) do
+ActiveRecord::Schema.define(version: 2020_08_08_184017) do
 
   create_table "cities", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
@@ -48,6 +48,10 @@ ActiveRecord::Schema.define(version: 2020_08_06_190800) do
     t.boolean "combined_count", default: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.float "total_value"
+    t.float "percentage_result"
+    t.float "final_total_value"
+    t.float "percentage_result_value"
   end
 
   create_table "counts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -59,6 +63,9 @@ ActiveRecord::Schema.define(version: 2020_08_06_190800) do
     t.boolean "fourth_count_released", default: false
     t.integer "fourth_count_employee"
     t.integer "products_quantity_to_count"
+    t.float "initial_value"
+    t.float "final_value", default: 0.0
+    t.float "accuracy"
   end
 
   create_table "counts_employees", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|

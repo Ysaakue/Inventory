@@ -15,14 +15,14 @@ class CsvBuilder
       row << cp.product.description #MATERIAL
       row << cp.product.unit_measurement #UND
       row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
-      row << (('%.2f' % (cp.product.value * cp.product.current_stock)).gsub! '.',',') #VLRT TOTAL
+      row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
       row << cp.product.current_stock #SALDO INICIAL
       row << (cp.results[0].blank?? '-' : cp.results[0].quantity_found) #CONT 1
       row << (cp.results[1].blank?? '-' : cp.results[1].quantity_found) #CONT 2
       row << (cp.results[2].blank?? '-' : cp.results[2].quantity_found) #CONT 3
       row << (cp.results[3].blank?? '-' : cp.results[3].quantity_found) #CONT 4
       row << cp.results.last.quantity_found #SALDO FINAL
-      row << (cp.results.last.quantity_found*100)/cp.product.current_stock #RESULTADO %
+      row << cp.percentage_result #RESULTADO %
       streets = []
       stands  = []
       shelfs  = []
@@ -36,8 +36,8 @@ class CsvBuilder
       row << streets.join(',') #RUA
       row << stands.join(',') #ESTANTE
       row << shelfs.join(',') #PRATELEIRA
-      row << (('%.2f' % (cp.results.last.quantity_found * cp.product.value)).gsub! '.',',') #VLR TOTAL FINAL
-      row << ((cp.results.last.quantity_found * cp.product.value)*100)/(cp.product.current_stock * cp.product.value) #RESULTADO VLR %
+      row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
+      row << cp.percentage_result_value #RESULTADO VLR %
       output << CSV.generate_line(row)
     end
     output

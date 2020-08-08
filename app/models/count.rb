@@ -53,21 +53,24 @@ class Count < ApplicationRecord
       temp_products = temp_products.shuffle
       temp_products = temp_products[0..products_quantity_to_count-1]
     end
+    initial_value = 0
     temp_products.each do |product|
+      total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
         count_id: self.id,
-        combined_count: false
+        combined_count: false,
+        total_value: total_value
       )
       cp.save!
-    end
-    self.counts_products.each do |cp|
-      r = Result.new(
+      initial_value += cp.total_value
+      Result.new(
         count_product_id: cp.id,
         order: 1,
-      )
-      r.save!
+      ).save!
     end
+    self.initial_value = initial_value
+    self.save
   end
 
   def verify_count
@@ -208,6 +211,19 @@ class Count < ApplicationRecord
     Enumerator.new do |y|
       CsvBuilder.new(header, self, y).build
     end
+  end
+
+  def calculate_accuracy
+    self.accuracy = ((self.final_value)*100)/(self.initial_value)
+    self.save!
+  end
+
+  def calculate_final_value
+    self.final_value = 0
+    self.counts_products.each do |cp|
+      self.final_value += cp.final_total_value
+    end
+    self.save!
   end
 
   # Define asynchronous tasks

@@ -20,6 +20,7 @@ class Result < ApplicationRecord
         else # quantity founds are equal
           count_product.combined_count = true
           count_product.save!
+          count_product.calculate_attributes
         end
       end # values != -1
     elsif count_product.results.size == 3 &&
@@ -36,10 +37,12 @@ class Result < ApplicationRecord
       else
         count_product.combined_count = true
         count_product.save!
+        count_product.calculate_attributes
       end
     elsif count_product.results[3].quantity_found != -1
       count_product.combined_count = true
       count_product.save!
+      count_product.calculate_attributes
     end
     count_product.count.verify_count
   end
