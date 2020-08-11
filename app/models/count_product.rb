@@ -7,10 +7,10 @@ class CountProduct < ApplicationRecord
     self.percentage_result = (self.results.last.quantity_found*100)/self.product.current_stock
     self.final_total_value = self.results.last.quantity_found * self.product.value
     self.percentage_result_value = ((self.results.last.quantity_found * self.product.value)*100)/(self.product.current_stock * self.product.value)
-    self.save!
+    self.save(validate: false)
     self.count.final_value += self.final_total_value
     self.count.accuracy = ((self.count.final_value)*100)/(self.count.initial_value)
-    self.count.save!
+    self.count.save(validate: false)
   end
 
   def as_json options={}

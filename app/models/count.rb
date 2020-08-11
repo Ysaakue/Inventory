@@ -62,15 +62,15 @@ class Count < ApplicationRecord
         combined_count: false,
         total_value: total_value
       )
-      cp.save!
+      cp.save(validate: false)
       initial_value += cp.total_value
       Result.new(
         count_product_id: cp.id,
         order: 1,
-      ).save!
+      ).save(validate: false)
     end
     self.initial_value = initial_value
-    self.save
+    self.save(validate: false)
   end
 
   def verify_count
@@ -94,7 +94,7 @@ class Count < ApplicationRecord
     end
     if self.first_count? && one == 0
       self.second_count!
-      self.save!
+      self.save(validate: false)
       status = self.status
     elsif self.second_count? && two == 0
       if three != 0
@@ -102,7 +102,7 @@ class Count < ApplicationRecord
       else
         self.completed!
       end
-      self.save!
+      self.save(validate: false)
       status = self.status
     elsif self.third_count? && three == 0
       if four != 0
@@ -110,11 +110,11 @@ class Count < ApplicationRecord
       else
         self.completed!
       end
-      self.save!
+      self.save(validate: false)
       status = self.status
     elsif self.fourth_count? && four == 0
       self.completed!
-      self.save!
+      self.save(validate: false)
       status = self.status
     end
 
@@ -215,7 +215,7 @@ class Count < ApplicationRecord
 
   def calculate_accuracy
     self.accuracy = ((self.final_value)*100)/(self.initial_value)
-    self.save!
+    self.save(validate: false)
   end
 
   def calculate_final_value
@@ -223,7 +223,7 @@ class Count < ApplicationRecord
     self.counts_products.each do |cp|
       self.final_value += cp.final_total_value
     end
-    self.save!
+    self.save(validate: false)
   end
 
   # Define asynchronous tasks

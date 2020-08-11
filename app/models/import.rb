@@ -4,7 +4,7 @@ class Import < ApplicationRecord
 
   def process
     self.description = "Processando produtos."
-    self.save!
+    self.save(validate: false)
     total = 0
     created = 0
     edited = 0
