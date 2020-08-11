@@ -258,7 +258,7 @@ class CountsController < ApplicationController
             params[:count][:location]
           ]
         }
-      else
+      elsif !cp.product.location["locations"].include? params[:count][:location]
         cp.product.location["locations"] << params[:count][:location]
       end
     end
