@@ -10,12 +10,13 @@ class Count < ApplicationRecord
   validate :date_not_retrograde
 
   enum status: [
-    :first_count,
-    :second_count,
-    :third_count,
-    :fourth_count_pending,
-    :fourth_count,
-    :completed
+    first_count: 0,
+    second_count: 1,
+    third_count: 2,
+    fourth_count_pending: 3,
+    fourth_count: 4,
+    completed: 5,
+    calculating: 6
   ]
 
   def date_not_retrograde
@@ -48,6 +49,8 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
+    self.calculating!
+    self.save!
     temp_products = self.client.products.where(active: true)
     if self.products_quantity_to_count < temp_products.size
       temp_products = temp_products.shuffle
@@ -70,10 +73,14 @@ class Count < ApplicationRecord
       ).save(validate: false)
     end
     self.initial_value = initial_value
+    self.first_count!
     self.save(validate: false)
   end
 
   def verify_count
+    status_before = self.status
+    self.calculating!
+    self.save!
     one = 0
     two = 0
     three = 0
@@ -92,11 +99,11 @@ class Count < ApplicationRecord
         end
       end
     end
-    if self.first_count? && one == 0
+    if status_before == "first_count" && one == 0
       self.second_count!
       self.save(validate: false)
       status = self.status
-    elsif self.second_count? && two == 0
+    elsif self."second_count" && two == 0
       if three != 0
         self.third_count!
       else
@@ -104,7 +111,7 @@ class Count < ApplicationRecord
       end
       self.save(validate: false)
       status = self.status
-    elsif self.third_count? && three == 0
+    elsif status_before = "third_count" && three == 0
       if four != 0
         self.fourth_count_pending!
       else
@@ -112,16 +119,23 @@ class Count < ApplicationRecord
       end
       self.save(validate: false)
       status = self.status
-    elsif self.fourth_count? && four == 0
+    elsif status_before = "fourth_count" && four == 0
       self.completed!
       self.save(validate: false)
       status = self.status
     end
 
+    if status != ""
+      status_changed = true
+      self.status = status_before
+    else
+      status_changed = false
+    end
+
     msg = {
       id: self.id,
       status: status,
-      status_changed: ((status != "")? true : false),
+      status_changed: status_changed,
       first_count_pending: one,
       second_count_pending: two,
       third_count_pending: three,
@@ -131,6 +145,8 @@ class Count < ApplicationRecord
   end
 
   def generate_fourth_results
+    self.calculating!
+    self.save!
     if fourth_count_pending? && fourth_count_released?
       cps = counts_products.where("combined_count = false")
       cps.each do |cp|
