@@ -103,7 +103,7 @@ class Count < ApplicationRecord
       self.second_count!
       self.save(validate: false)
       status = self.status
-    elsif self."second_count" && two == 0
+    elsif status_before == "second_count" && two == 0
       if three != 0
         self.third_count!
       else
@@ -111,7 +111,7 @@ class Count < ApplicationRecord
       end
       self.save(validate: false)
       status = self.status
-    elsif status_before = "third_count" && three == 0
+    elsif status_before == "third_count" && three == 0
       if four != 0
         self.fourth_count_pending!
       else
@@ -119,7 +119,7 @@ class Count < ApplicationRecord
       end
       self.save(validate: false)
       status = self.status
-    elsif status_before = "fourth_count" && four == 0
+    elsif status_before == "fourth_count" && four == 0
       self.completed!
       self.save(validate: false)
       status = self.status
