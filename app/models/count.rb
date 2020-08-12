@@ -10,13 +10,13 @@ class Count < ApplicationRecord
   validate :date_not_retrograde
 
   enum status: [
-    first_count: 0,
-    second_count: 1,
-    third_count: 2,
-    fourth_count_pending: 3,
-    fourth_count: 4,
-    completed: 5,
-    calculating: 6
+    :first_count,
+    :second_count,
+    :third_count,
+    :fourth_count_pending,
+    :fourth_count,
+    :completed,
+    :calculating
   ]
 
   def date_not_retrograde
