@@ -1,9 +1,6 @@
 default: &default
-  adapter: mysql2
-  encoding: utf8mb4
   host: localhost
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  socket: /var/run/mysqld/mysqld.sock
 
 development:
   <<: *default
