@@ -3,9 +3,9 @@ class Count < ApplicationRecord
   has_and_belongs_to_many :employees, join_table: "counts_employees"
   has_many :counts_products, class_name: "CountProduct"
   has_many :products, through: :counts_products
-
+  has_many :reports
+  
   after_create :prepare_count
-  after_update :verify_count
 
   validate :date_not_retrograde
 
@@ -125,23 +125,24 @@ class Count < ApplicationRecord
       status = self.status
     end
 
-    if status != ""
-      status_changed = true
+    if status == ""
+      # status_changed = true
       self.status = status_before
-    else
-      status_changed = false
+      self.save(validate: false)
+    # else
+    #   status_changed = false
     end
 
-    msg = {
-      id: self.id,
-      status: status,
-      status_changed: status_changed,
-      first_count_pending: one,
-      second_count_pending: two,
-      third_count_pending: three,
-      fourth_count_pending: four
-    }
-    $redis.publish "count_status_#{self.id}", msg.to_json
+    # msg = {
+    #   id: self.id,
+    #   status: status,
+    #   status_changed: status_changed,
+    #   first_count_pending: one,
+    #   second_count_pending: two,
+    #   third_count_pending: three,
+    #   fourth_count_pending: four
+    # }
+    # $redis.publish "count_status_#{self.id}", msg.to_json
   end
 
   def generate_fourth_results
@@ -190,14 +191,14 @@ class Count < ApplicationRecord
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
         row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
-        row << (('%.2f' % (cp.product.value * cp.product.current_stock)).gsub! '.',',') #VLRT TOTAL
+        row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
         row << (cp.results[0].blank?? '-' : cp.results[0].quantity_found) #CONT 1
         row << (cp.results[1].blank?? '-' : cp.results[1].quantity_found) #CONT 2
         row << (cp.results[2].blank?? '-' : cp.results[2].quantity_found) #CONT 3
         row << (cp.results[3].blank?? '-' : cp.results[3].quantity_found) #CONT 4
         row << cp.results.last.quantity_found #SALDO FINAL
-        row << (cp.results.last.quantity_found*100)/cp.product.current_stock #RESULTADO %
+        row << cp.percentage_result #RESULTADO %
         streets = []
         stands  = []
         shelfs  = []
@@ -211,8 +212,8 @@ class Count < ApplicationRecord
         row << streets.join(',') #RUA
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
-        row << (('%.2f' % (cp.results.last.quantity_found * cp.product.value)).gsub! '.',',') #VLR TOTAL FINAL
-        row << ((cp.results.last.quantity_found * cp.product.value)*100)/(cp.product.current_stock * cp.product.value) #RESULTADO VLR %
+        row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
+        row << cp.percentage_result_value #RESULTADO VLR %
         csv << row
       end
     end
@@ -242,8 +243,33 @@ class Count < ApplicationRecord
     self.save(validate: false)
   end
 
+  def generate_report(content_type)
+    @report = reports.find_by(content_type: content_type)
+    if !@report.present? || (@report.present? && @report.completed?)
+      if !@report.present?
+        @report = Report.new
+        @report.count_id = self.id
+      end
+      @report.filename = "relatorio_contagem_#{(!(self.client.fantasy_name.include? " ") == false)? (self.client.fantasy_name.gsub! " ", "_") : (self.client.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
+      @report.content_type = content_type
+      @report.generating!
+      @report.save!
+      
+      if content_type == "pdf"
+        pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: self})
+        @report.file_contents = WickedPdf.new.pdf_from_string(pdf_html)
+      else
+        @report.file_contents = Count.to_csv(self)
+      end
+      
+      @report.completed!
+      @report.save!
+    end
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
+  handle_asynchronously :generate_report
 end

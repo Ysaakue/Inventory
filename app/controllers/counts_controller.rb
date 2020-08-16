@@ -2,7 +2,7 @@ class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report_pdf,:report_csv,:report_data
+    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data
   ]
 
   def index
@@ -55,6 +55,7 @@ class CountsController < ApplicationController
         id: @count.id,
         date: @count.date,
         status: @count.status,
+        report_csv_status: @count.reports.find_by(content_type: "csv").status,
         client: @count.client.fantasy_name,
         initial_value: @count.initial_value,
         final_value: @count.final_value,
@@ -113,7 +114,7 @@ class CountsController < ApplicationController
         status: "error",
         data: "O produto não foi encontrado para essa contagem, verifique os dados e tente novamente."
       }
-    elsif cp.count.completed
+    elsif cp.count.completed?
       render json:{
         status: "error",
         data: "A contagem já foi encerrada."
@@ -200,16 +201,28 @@ class CountsController < ApplicationController
     send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
   end
 
-  def report_csv
+  def report_save
+    @count.generate_report_without_delay(params[:file_format])
+    render json: {
+      "status": "sucess",
+      "data": "O arquivo está sendo gerado."
+    }
+  end
+  
+  def report_download
     respond_to do |format|
       format.csv do
-        headers["X-Accel-Buffering"] = "no"
-        headers["Cache-Control"] = "no-cache"
-        headers["Content-Type"] = "text/csv; charset=utf-8"
-        headers["Content-Disposition"] =
-          %(attachment; filename="relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.csv")
-        headers["Last-Modified"] = Time.zone.now.ctime.to_s
-        self.response_body = @count.build_csv_enumerator
+        @report = @count.reports.find_by(content_type: "csv")
+        send_data(
+          @report.file_contents,
+          type: @report.content_type,
+          filename: @report.filename
+        )
+      end
+      format.pdf do
+        pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
+        pdf = WickedPdf.new.pdf_from_string(pdf_html)
+        send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
       end
     end
   end

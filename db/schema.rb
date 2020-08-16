@@ -10,16 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_08_184017) do
+ActiveRecord::Schema.define(version: 2020_08_15_215417) do
 
-  create_table "cities", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "btree_gin"
+  enable_extension "btree_gist"
+  enable_extension "citext"
+  enable_extension "cube"
+  enable_extension "dblink"
+  enable_extension "dict_int"
+  enable_extension "dict_xsyn"
+  enable_extension "earthdistance"
+  enable_extension "fuzzystrmatch"
+  enable_extension "hstore"
+  enable_extension "intarray"
+  enable_extension "ltree"
+  enable_extension "pg_stat_statements"
+  enable_extension "pg_trgm"
+  enable_extension "pgcrypto"
+  enable_extension "pgrowlocks"
+  enable_extension "pgstattuple"
+  enable_extension "plpgsql"
+  enable_extension "tablefunc"
+  enable_extension "unaccent"
+  enable_extension "uuid-ossp"
+  enable_extension "xml2"
+
+  create_table "cities", force: :cascade do |t|
     t.string "name"
     t.integer "state_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "clients", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "clients", force: :cascade do |t|
     t.string "cnpj"
     t.string "company_name"
     t.string "fantasy_name"
@@ -42,7 +66,7 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.index ["cnpj"], name: "index_clients_on_cnpj", unique: true
   end
 
-  create_table "count_products", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "count_products", force: :cascade do |t|
     t.integer "product_id"
     t.integer "count_id"
     t.boolean "combined_count", default: false
@@ -54,7 +78,7 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.float "percentage_result_value"
   end
 
-  create_table "counts", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "counts", force: :cascade do |t|
     t.date "date"
     t.integer "status", default: 0
     t.integer "client_id"
@@ -68,14 +92,14 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.float "accuracy"
   end
 
-  create_table "counts_employees", id: false, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "counts_employees", id: false, force: :cascade do |t|
     t.bigint "employee_id", null: false
     t.bigint "count_id", null: false
     t.index ["count_id", "employee_id"], name: "index_counts_employees_on_count_id_and_employee_id"
     t.index ["employee_id", "count_id"], name: "index_counts_employees_on_employee_id_and_count_id"
   end
 
-  create_table "delayed_jobs", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "delayed_jobs", force: :cascade do |t|
     t.integer "priority", default: 0, null: false
     t.integer "attempts", default: 0, null: false
     t.text "handler", null: false
@@ -90,7 +114,7 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.index ["priority", "run_at"], name: "delayed_jobs_priority"
   end
 
-  create_table "employees", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "employees", force: :cascade do |t|
     t.string "name"
     t.string "cpf"
     t.datetime "created_at", precision: 6, null: false
@@ -98,7 +122,7 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.index ["cpf"], name: "index_employees_on_cpf", unique: true
   end
 
-  create_table "imports", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "imports", force: :cascade do |t|
     t.integer "client_id"
     t.json "products"
     t.string "description"
@@ -106,7 +130,7 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "products", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "products", force: :cascade do |t|
     t.string "description"
     t.string "code"
     t.integer "current_stock"
@@ -120,7 +144,17 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.boolean "new", default: true
   end
 
-  create_table "results", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "reports", force: :cascade do |t|
+    t.string "filename"
+    t.string "content_type"
+    t.string "file_contents"
+    t.integer "count_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "status"
+  end
+
+  create_table "results", force: :cascade do |t|
     t.integer "order"
     t.integer "quantity_found", default: -1
     t.integer "count_product_id"
@@ -129,14 +163,14 @@ ActiveRecord::Schema.define(version: 2020_08_08_184017) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "states", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "states", force: :cascade do |t|
     t.string "name"
     t.string "federation_unity"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "users", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "users", force: :cascade do |t|
     t.string "provider", default: "email", null: false
     t.string "uid", default: "", null: false
     t.string "encrypted_password", default: "", null: false
