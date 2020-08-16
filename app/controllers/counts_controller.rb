@@ -72,6 +72,9 @@ class CountsController < ApplicationController
     if @count.products_quantity_to_count == nil
       @count.products_quantity_to_count = @count.client.products.where(active: true).size
     end
+    if !params[:count][:clear_locations].blank? && params[:count][:clear_locations]
+      Product.clear_location(params[:client_id])
+    end
     if @count.save
       render json:{
         "status": "success",
