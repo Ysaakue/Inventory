@@ -33,4 +33,9 @@ class Product < ApplicationRecord
     sql = "update products set new = false where id in (#{ids.join(',')}) "
     result = ActiveRecord::Base.connection.exec_query(sql)
   end
+
+  def self.clear_location(client_id)
+    sql = "update products as p set location = '{}' where p.client_id = #{client_id}"
+    result = ActiveRecord::Base.connection.exec_query(sql)
+  end
 end
