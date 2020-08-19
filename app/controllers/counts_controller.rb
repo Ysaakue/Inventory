@@ -44,6 +44,7 @@ class CountsController < ApplicationController
       end
     end
 
+    file = @count.reports.find_by(content_type: "csv")
     render json: {
       current_page: page,
       current_quantity_per_page: quantity,
@@ -55,7 +56,7 @@ class CountsController < ApplicationController
         id: @count.id,
         date: @count.date,
         status: @count.status,
-        report_csv_status: @count.reports.find_by(content_type: "csv").status,
+        report_csv_status: (file.present?? file.status : "nonexistent"),
         client: @count.client.fantasy_name,
         initial_value: @count.initial_value,
         final_value: @count.final_value,
