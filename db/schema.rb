@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_08_15_215417) do
+ActiveRecord::Schema.define(version: 2020_08_21_180734) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -73,9 +73,9 @@ ActiveRecord::Schema.define(version: 2020_08_15_215417) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.float "total_value"
-    t.float "percentage_result"
-    t.float "final_total_value"
-    t.float "percentage_result_value"
+    t.float "percentage_result", default: 0.0
+    t.float "final_total_value", default: 0.0
+    t.float "percentage_result_value", default: 0.0
   end
 
   create_table "counts", force: :cascade do |t|
@@ -89,7 +89,7 @@ ActiveRecord::Schema.define(version: 2020_08_15_215417) do
     t.integer "products_quantity_to_count"
     t.float "initial_value"
     t.float "final_value", default: 0.0
-    t.float "accuracy"
+    t.float "accuracy", default: 0.0
   end
 
   create_table "counts_employees", id: false, force: :cascade do |t|
