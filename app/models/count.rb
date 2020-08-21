@@ -243,7 +243,7 @@ class Count < ApplicationRecord
     self.save(validate: false)
   end
 
-  def calculate_inital_value
+  def calculate_initial_value
     initial_value = 0
     counts_products.each do |cp|
       initial_value += cp.product.value * cp.product.current_stock

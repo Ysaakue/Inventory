@@ -206,7 +206,7 @@ class CountsController < ApplicationController
   end
 
   def report_save
-    @count.generate_report_without_delay(params[:file_format])
+    @count.generate_report(params[:file_format])
     render json: {
       "status": "sucess",
       "data": "O arquivo está sendo gerado."
