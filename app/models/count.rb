@@ -243,6 +243,15 @@ class Count < ApplicationRecord
     self.save(validate: false)
   end
 
+  def calculate_inital_value
+    initial_value = 0
+    counts_products.each do |cp|
+      initial_value += cp.product.value * cp.product.current_stock
+    end
+    self.initial_value = initial_value
+    self.save!
+  end
+
   def generate_report(content_type)
     @report = reports.find_by(content_type: content_type)
     if !@report.present? || (@report.present? && @report.completed?)
