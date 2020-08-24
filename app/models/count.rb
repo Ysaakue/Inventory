@@ -158,8 +158,8 @@ class Count < ApplicationRecord
           ).save!
         end
       end
-      @count.fourth_count!
-      @count.save(validate: false)
+      self.fourth_count!
+      self.save(validate: false)
     end
   end
 
