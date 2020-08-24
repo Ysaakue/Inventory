@@ -178,10 +178,10 @@ class CountsController < ApplicationController
   end
 
   def fourth_count_release
-    @count.fourth_count_released = params[:count][:fourth_count_release]
+    @count.fourth_count_released = params[:fourth_count_release]
     if @count.fourth_count_released?
-      @count.employee_ids << params[:count][:employee_id]
-      @count.fourth_count_employee = params[:count][:employee_id]
+      @count.employee_ids << params[:employee_id]
+      @count.fourth_count_employee = params[:employee_id]
     else
       @count.completed!
     end
