@@ -148,7 +148,7 @@ class Count < ApplicationRecord
   def generate_fourth_results
     self.calculating!
     self.save!
-    if fourth_count_pending? && fourth_count_released?
+    if fourth_count_released?
       cps = counts_products.where("combined_count = false")
       cps.each do |cp|
         if cp.results.size == 3
