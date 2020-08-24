@@ -94,7 +94,7 @@ class Count < ApplicationRecord
           two+=1
         elsif cp.results.size == 3
           three+=1
-        elsif cp.results.size == 1
+        else
           four+=1
         end
       end
