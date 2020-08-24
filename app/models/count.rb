@@ -92,7 +92,7 @@ class Count < ApplicationRecord
           one+=1
         elsif cp.results.size == 2
           two+=1
-        elsif cp.results.size == 3
+        elsif cp.results.size == 3 && cp.results.last.quantity_found != -1
           three+=1
         else
           four+=1
