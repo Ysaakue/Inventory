@@ -253,6 +253,7 @@ class Count < ApplicationRecord
   end
 
   def generate_report(content_type)
+    content_type ||= "csv"
     @report = reports.find_by(content_type: content_type)
     if !@report.present? || (@report.present? && @report.completed?)
       if !@report.present?
