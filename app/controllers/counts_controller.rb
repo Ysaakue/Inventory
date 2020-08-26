@@ -144,6 +144,9 @@ class CountsController < ApplicationController
       elsif cp.count.third_count?
         result = cp.results[2]
       elsif cp.count.fourth_count?
+        if cp.count.fourth_count_employee: != params[:count][:employee_id]
+          unassigned_employee = true
+        end
         result = cp.results[3]
       end
       if result.quantity_found == -1
@@ -164,6 +167,11 @@ class CountsController < ApplicationController
         render json:{
           status: "error",
           data: "Produto já contado nessa etapa."
+        }
+      elsif
+        render json:{
+          status: "error",
+          data: "Outro funcionário foi designado para a quarta etapa da contagem."
         }
       else
         result.employee_id = params[:count][:employee_id]
