@@ -213,7 +213,7 @@ class Count < ApplicationRecord
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
-        row << cp.percentage_result_value #RESULTADO VLR %
+        row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
         csv << row
       end
     end
