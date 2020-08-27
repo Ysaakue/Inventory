@@ -2,7 +2,8 @@ class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data
+    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
+    :pending_products
   ]
 
   def index
@@ -62,7 +63,7 @@ class CountsController < ApplicationController
         final_value: @count.final_value,
         accuracy: @count.accuracy,
         employees: @count.employees,
-        products: @count.counts_products[array_start..array_end].as_json(import: true)
+        products: @count.counts_products[array_start..array_end].as_json
       }
     }
   end
@@ -144,7 +145,7 @@ class CountsController < ApplicationController
       elsif cp.count.third_count?
         result = cp.results[2]
       elsif cp.count.fourth_count?
-        if cp.count.fourth_count_employee: != params[:count][:employee_id]
+        if cp.count.fourth_count_employee != params[:count][:employee_id]
           unassigned_employee = true
         end
         result = cp.results[3]
@@ -247,6 +248,15 @@ class CountsController < ApplicationController
       client: @count.client.fantasy_name,
       products: @count.counts_products,
       employees: @count.employees_to_report
+    }
+  end
+
+  def pending_products
+    render json: {
+      count: {
+        status: @count.status,
+        products: @count.counts_products.where(combined_count: false).as_json(except: [:quantity_found])
+      }
     }
   end
 

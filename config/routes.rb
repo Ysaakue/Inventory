@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   end
   get '/counts', to: 'counts#index'
   get '/counts/:id/save_report', to: 'counts#report_save'
+  get '/counts/:id/pending_products', to: 'counts#pending_products'
   get '/counts/:id/download_report(.:format)', to: 'counts#report_download'
   get '/counts/:id/report_data', to: 'counts#report_data'
   put '/submit_result', to: 'counts#submit_quantity_found'
