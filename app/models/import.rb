@@ -30,7 +30,7 @@ class Import < ApplicationRecord
           edited+=1
         end
       else
-        product = Product.new(
+        new_product = Product.new(
           description: product["description"],
           code: product["code"],
           current_stock: product["current_stock"],
@@ -38,8 +38,8 @@ class Import < ApplicationRecord
           unit_measurement: product["unit_measurement"],
           client_id: self.client_id
         )
-        product.location = {}
-        if product.save
+        new_product.location = {}
+        if new_product.save
           created+=1
         end
       end
