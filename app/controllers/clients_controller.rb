@@ -14,7 +14,7 @@ class ClientsController < ApplicationController
   def create
     @client = Client.new(client_params)
     if @client.dimensions == nil
-      @client.dimensions = {"streets": 0, "stand": 0,"shelfs": 0 }
+      @client.dimensions = {"streets": 0, "stands": 0,"shelfs": 0,"pallets": 0 }
     end
     if @client.save
       render json:{

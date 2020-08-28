@@ -178,7 +178,7 @@ class Count < ApplicationRecord
     cols = [
       "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
       "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
-      "PRATELEIRA","VLR TOTAL FINAL","RESULTADO VLR %"
+      "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %"
     ]
 
     CSV.generate(headers: true) do |csv|
@@ -193,25 +193,31 @@ class Count < ApplicationRecord
         row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
         row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
-        row << (cp.results[0].blank?? '-' : cp.results[0].quantity_found) #CONT 1
-        row << (cp.results[1].blank?? '-' : cp.results[1].quantity_found) #CONT 2
-        row << (cp.results[2].blank?? '-' : cp.results[2].quantity_found) #CONT 3
-        row << (cp.results[3].blank?? '-' : cp.results[3].quantity_found) #CONT 4
+        row << ((cp.results[0].blank? || cp.results[0].quantity_found < 0)? '-' : cp.results[0].quantity_found) #CONT 1
+        row << ((cp.results[1].blank? || cp.results[1].quantity_found < 0)? '-' : cp.results[1].quantity_found) #CONT 2
+        row << ((cp.results[2].blank? || cp.results[2].quantity_found < 0)? '-' : cp.results[2].quantity_found) #CONT 3
+        row << ((cp.results[3].blank? || cp.results[3].quantity_found < 0)? '-' : cp.results[3].quantity_found) #CONT 4
         row << cp.results.last.quantity_found #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
         stands  = []
         shelfs  = []
+        pallets  = []
         if !cp.product.location.blank? && !cp.product.location["locations"].blank?
           cp.product.location["locations"].each do |location|
-            streets << location["street"]
-            stands  << location["stand"]
-            shelfs  << location["shelf"]
+            if location.keys.include? "pallet"
+              pallets << location["pallet"]
+            else
+              streets << location["street"]
+              stands  << location["stand"]
+              shelfs  << location["shelf"]
+            end
           end
         end
         row << streets.join(',') #RUA
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
+        row << pallets.join(',') #PALLETS
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
         row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
         csv << row
