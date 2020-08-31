@@ -3,7 +3,7 @@ class CountsController < ApplicationController
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products
+    :pending_products, :question_results
   ]
 
   def index
@@ -192,7 +192,7 @@ class CountsController < ApplicationController
       @count.employee_ids << params[:employee_id]
       @count.fourth_count_employee = params[:employee_id]
     else
-      @count.completed!
+      @count.status = "completed"
     end
     if @count.save(validate: false)
       render json:{
@@ -200,6 +200,24 @@ class CountsController < ApplicationController
         "data": @count
       }
       @count.generate_fourth_results
+    else
+      render json:{
+        "status": "error",
+        "data": @count.errors
+      }
+    end
+  end
+
+  def question_results
+    @count.fourth_count_released = true
+    @count.employee_ids << params[:employee_id]
+    @count.fourth_count_employee = params[:employee_id]
+    if @count.save(validate: false)
+      render json:{
+        "status": "success",
+        "data": @count
+      }
+      @count.question_result(params[:products_ids])
     else
       render json:{
         "status": "error",

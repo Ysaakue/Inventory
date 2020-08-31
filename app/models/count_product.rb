@@ -30,6 +30,11 @@ class CountProduct < ApplicationRecord
     }
   end
 
+  def self.question_result(ids)
+    sql = "update count_products set combined_count = false where product_id in (#{ids.join(',')}) "
+    result = ActiveRecord::Base.connection.exec_query(sql)
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :calculate_attributes
 end

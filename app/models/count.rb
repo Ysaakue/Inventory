@@ -49,8 +49,8 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
-    self.calculating!
-    self.save!
+    self.status = "calculating"
+    self.save(validate: false)
     temp_products = self.client.products.where(active: true)
     if self.products_quantity_to_count < temp_products.size
       temp_products = temp_products.shuffle
@@ -73,14 +73,14 @@ class Count < ApplicationRecord
       ).save(validate: false)
     end
     self.initial_value = initial_value
-    self.first_count!
+    self.status = "first_count"
     self.save(validate: false)
   end
 
   def verify_count
     status_before = self.status
-    self.calculating!
-    self.save!
+    self.status = "calculating"
+    self.save(validate: false)
     one = 0
     two = 0
     three = 0
@@ -100,27 +100,27 @@ class Count < ApplicationRecord
       end
     end
     if status_before == "first_count" && one == 0
-      self.second_count!
+      self.status = "second_count"
       self.save(validate: false)
       status = self.status
     elsif status_before == "second_count" && two == 0
       if three != 0
-        self.third_count!
+        self.status = "third_count"
       else
-        self.completed!
+        self.status = "completed"
       end
       self.save(validate: false)
       status = self.status
     elsif status_before == "third_count" && three == 0
       if four != 0
-        self.fourth_count_pending!
+        self.status = "fourth_count_pending"
       else
-        self.completed!
+        self.status = "completed"
       end
       self.save(validate: false)
       status = self.status
     elsif status_before == "fourth_count" && four == 0
-      self.completed!
+      self.status = "completed"
       self.save(validate: false)
       status = self.status
     end
@@ -146,8 +146,8 @@ class Count < ApplicationRecord
   end
 
   def generate_fourth_results
-    self.calculating!
-    self.save!
+    self.status = "calculating"
+    self.save(validate: false)
     if fourth_count_released?
       cps = counts_products.where("combined_count = false")
       cps.each do |cp|
@@ -158,7 +158,7 @@ class Count < ApplicationRecord
           ).save!
         end
       end
-      self.fourth_count!
+      self.status = "fourth_count"
       self.save(validate: false)
     end
   end
@@ -255,7 +255,7 @@ class Count < ApplicationRecord
       initial_value += cp.product.value * cp.product.current_stock
     end
     self.initial_value = initial_value
-    self.save!
+    self.save(validate: false)
   end
 
   def generate_report(content_type)
@@ -277,10 +277,29 @@ class Count < ApplicationRecord
       else
         @report.file_contents = Count.to_csv(self)
       end
-      
-      @report.completed!
+      @report.status = "completed"
       @report.save!
     end
+  end
+
+  def question_result(ids)
+    self.status = "calculating"
+    self.save(validate: false)
+    CountProduct.question_result(ids)
+    cps = counts_products.where("combined_count = false")
+    cps.each do |cp|
+      if cp.results.size <= 3
+        Result.new(
+          count_product_id: cp.id,
+          order: 4,
+        ).save!
+      else
+        cp.combined_count = true
+        cp.save
+      end
+    end
+    self.status = "fourth_count"
+    self.save(validate: false)
   end
 
   # Define asynchronous tasks

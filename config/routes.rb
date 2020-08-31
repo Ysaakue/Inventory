@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     end
   end
   get '/counts', to: 'counts#index'
+  post '/counts/:id/question_results', to: 'counts#question_results'
   get '/counts/:id/save_report', to: 'counts#report_save'
   get '/counts/:id/pending_products', to: 'counts#pending_products'
   get '/counts/:id/download_report(.:format)', to: 'counts#report_download'
