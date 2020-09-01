@@ -169,7 +169,7 @@ class CountsController < ApplicationController
           status: "error",
           data: "Produto já contado nessa etapa."
         }
-      elsif
+      elsif unassigned_employee
         render json:{
           status: "error",
           data: "Outro funcionário foi designado para a quarta etapa da contagem."
