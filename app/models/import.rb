@@ -23,7 +23,7 @@ class Import < ApplicationRecord
         product_created.description = product["description"]
         product_created.code = product["code"]
         product_created.current_stock = product["current_stock"]
-        product_created.value = product["value"]
+        product_created.value = product["value"].gsub!(',','.').to_f
         product_created.unit_measurement = product["unit_measurement"]
         product_created.active = true
         if product_created.save
@@ -34,7 +34,7 @@ class Import < ApplicationRecord
           description: product["description"],
           code: product["code"],
           current_stock: product["current_stock"],
-          value: product["value"].gsub!(',','.').to_,
+          value: product["value"].gsub!(',','.').to_f,
           unit_measurement: product["unit_measurement"],
           client_id: self.client_id
         )
