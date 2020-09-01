@@ -136,19 +136,19 @@ class CountsController < ApplicationController
       }
     else
       if cp.count.first_count?
-        result = cp.results[0]
+        result = cp.results.order(:order)[0]
       elsif cp.count.second_count?
-        if cp.results[0].employee_id == params[:count][:employee_id]
+        if cp.results.order(:order)[0].employee_id == params[:count][:employee_id]
           employee_already_count_this_product = true
         end
-        result = cp.results[1]
+        result = cp.results.order(:order)[1]
       elsif cp.count.third_count?
-        result = cp.results[2]
+        result = cp.results.order(:order)[2]
       elsif cp.count.fourth_count?
         if cp.count.fourth_count_employee != params[:count][:employee_id]
           unassigned_employee = true
         end
-        result = cp.results[3]
+        result = cp.results.order(:order)[3]
       end
       if result.quantity_found == -1
         result.quantity_found = params[:count][:quantity_found]
