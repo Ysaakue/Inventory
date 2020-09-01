@@ -193,10 +193,10 @@ class Count < ApplicationRecord
         row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
         row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
-        row << ((cp.results[0].blank? || cp.results[0].quantity_found < 0)? '-' : cp.results[0].quantity_found) #CONT 1
-        row << ((cp.results[1].blank? || cp.results[1].quantity_found < 0)? '-' : cp.results[1].quantity_found) #CONT 2
-        row << ((cp.results[2].blank? || cp.results[2].quantity_found < 0)? '-' : cp.results[2].quantity_found) #CONT 3
-        row << ((cp.results[3].blank? || cp.results[3].quantity_found < 0)? '-' : cp.results[3].quantity_found) #CONT 4
+        row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
+        row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
+        row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
+        row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
         row << cp.results.last.quantity_found #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []

@@ -4,15 +4,15 @@ class Result < ApplicationRecord
   after_update :verify_result
 
   def verify_result
-    if count_product.results.size == 1 && count_product.results[0].quantity_found != -1
+    if count_product.results.size == 1 && count_product.results.order(:order)[0].quantity_found != -1
       Result.new(
         count_product_id: count_product.id,
         order: 2,
       ).save!
     elsif count_product.results.size == 2 
-      if  count_product.results[0].quantity_found != -1 &&
-          count_product.results[1].quantity_found != -1
-        if count_product.results[0].quantity_found != count_product.results[1].quantity_found
+      if  count_product.results.order(:order)[0].quantity_found != -1 &&
+          count_product.results.order(:order)[1].quantity_found != -1
+        if count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found
           Result.new(
             count_product_id: count_product.id,
             order: 3,
@@ -24,10 +24,10 @@ class Result < ApplicationRecord
         end
       end # values != -1
     elsif count_product.results.size == 3 &&
-          count_product.results[2].quantity_found != -1
-      if  count_product.results[0].quantity_found != count_product.results[1].quantity_found &&
-          count_product.results[2].quantity_found != count_product.results[1].quantity_found &&
-          count_product.results[0].quantity_found != count_product.results[2].quantity_found
+          count_product.results.order(:order)[2].quantity_found != -1
+      if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found &&
+          count_product.results.order(:order)[2].quantity_found != count_product.results.order(:order)[1].quantity_found &&
+          count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found
         if count_product.count.fourth_count_released?
           Result.new(
             count_product_id: count_product.id,
@@ -39,7 +39,7 @@ class Result < ApplicationRecord
         count_product.save
         count_product.calculate_attributes
       end
-    elsif count_product.results[3].quantity_found != -1
+    elsif count_product.results.order(:order)[3].quantity_found != -1
       count_product.combined_count = true
       count_product.save!
       count_product.calculate_attributes

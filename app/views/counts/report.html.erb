@@ -206,19 +206,19 @@
           <h2>Contagens</h2>
           <div class="row">
             <div class="item">
-              <h3>1° contagem</h3> <%= cp.results[0].blank?? '-' : cp.results[0].quantity_found %>
+              <h3>1° contagem</h3> <%= cp.results.order(:order)[0].blank?? '-' : cp.results.order(:order)[0].quantity_found %>
             </div>  
 
             <div class="item">
-              <h3>2° contagem</h3> <%= cp.results[1].blank?? '-' : cp.results[1].quantity_found %>
+              <h3>2° contagem</h3> <%= cp.results.order(:order)[1].blank?? '-' : cp.results.order(:order)[1].quantity_found %>
             </div>
 
             <div class="item">
-              <h3>3° contagem</h3> <%= cp.results[2].blank?? '-' : cp.results[2].quantity_found %>
+              <h3>3° contagem</h3> <%= cp.results.order(:order)[2].blank?? '-' : cp.results.order(:order)[2].quantity_found %>
             </div>  
 
             <div class="item">
-              <h3>4° contagem</h3> <%= cp.results[3].blank?? '-' : cp.results[3].quantity_found %>
+              <h3>4° contagem</h3> <%= cp.results.order(:order)[3].blank?? '-' : cp.results.order(:order)[3].quantity_found %>
             </div>
 
             <div class="item">
