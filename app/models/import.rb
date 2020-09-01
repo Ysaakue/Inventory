@@ -34,7 +34,7 @@ class Import < ApplicationRecord
           description: product["description"],
           code: product["code"],
           current_stock: product["current_stock"],
-          value: product["value"],
+          value: product["value"].gsub!(',','.').to_,
           unit_measurement: product["unit_measurement"],
           client_id: self.client_id
         )
