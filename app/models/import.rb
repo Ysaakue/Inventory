@@ -21,7 +21,6 @@ class Import < ApplicationRecord
       product_created = self.client.products.find_by(code: product["code"])
       if product_created.present?
         product_created.description = product["description"]
-        product_created.code = product["code"]
         product_created.current_stock = product["current_stock"]
         product_created.value = product["value"].gsub(' R$  ','').gsub(',','.').to_f
         product_created.unit_measurement = product["unit_measurement"]
