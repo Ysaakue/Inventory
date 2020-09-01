@@ -273,7 +273,7 @@ class CountsController < ApplicationController
     render json: {
       count: {
         status: @count.status,
-        products: @count.counts_products.where(combined_count: false).as_json(except: [:quantity_found])
+        products: @count.counts_products.where(combined_count: false).as_json(simple: true)
       }
     }
   end

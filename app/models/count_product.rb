@@ -14,20 +14,30 @@ class CountProduct < ApplicationRecord
   end
 
   def as_json options={}
-    {
-      product_id: product.id,
-      product_code: product.code,
-      product_description: product.description,
-      product_current_stock: product.current_stock,
-      product_unit_measurement: product.unit_measurement,
-      product_value: product.value,
-      total_value: total_value,
-      percentage_result: percentage_result,
-      final_total_value: final_total_value,
-      percentage_result_value: percentage_result_value,
-      locations: (!product.location.blank? && !product.location["locations"].blank?)? product.location["locations"] : [],
-      quantity_found: results
-    }
+    simple = if options && options.key?(:simple)
+      options[:simple]
+    end
+    if simple
+      {
+        product_code: product.code,
+        product_description: product.description,
+      }
+    else
+      {
+        product_id: product.id,
+        product_code: product.code,
+        product_description: product.description,
+        product_current_stock: product.current_stock,
+        product_unit_measurement: product.unit_measurement,
+        product_value: product.value,
+        total_value: total_value,
+        percentage_result: percentage_result,
+        final_total_value: final_total_value,
+        percentage_result_value: percentage_result_value,
+        locations: (!product.location.blank? && !product.location["locations"].blank?)? product.location["locations"] : [],
+        quantity_found: results
+      }
+    end
   end
 
   def self.question_result(ids)
