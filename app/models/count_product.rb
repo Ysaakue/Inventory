@@ -4,7 +4,12 @@ class CountProduct < ApplicationRecord
   has_many :results, class_name: 'Result'
 
   def calculate_attributes
-    self.percentage_result = (self.results.last.quantity_found*100)/self.product.current_stock
+    accuracy = (self.results.last.quantity_found*100)/self.product.current_stock
+    if accuracy > 100
+      difference = accuracy - 100
+      accuracy = 100 - difference
+    end
+    self.percentage_result = accuracy
     self.final_total_value = self.results.last.quantity_found * self.product.value
     self.percentage_result_value = ((self.results.last.quantity_found * self.product.value)*100)/(self.product.current_stock * self.product.value)
     self.save(validate: false)
