@@ -24,7 +24,11 @@ class Import < ApplicationRecord
         product_created.current_stock = product["current_stock"]
         product_created.value = product["value"].gsub(' R$  ','').gsub(',','.').to_f
         product_created.unit_measurement = product["unit_measurement"]
-        product_created.active = true
+        if product_created.current_stock == 0
+          product_created.active = false
+        else
+          product_created.active = true
+        end
         if product_created.save
           edited+=1
         end
@@ -38,6 +42,9 @@ class Import < ApplicationRecord
           client_id: self.client_id
         )
         new_product.location = {}
+        if new_product.current_stock == 0
+          new_product.active = false
+        end
         if new_product.save
           created+=1
         end
