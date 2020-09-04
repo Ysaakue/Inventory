@@ -46,6 +46,7 @@ class CountsController < ApplicationController
     end
 
     file = @count.reports.find_by(content_type: "csv")
+    left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,Count.statuses[@count.status]).size
     render json: {
       current_page: page,
       current_quantity_per_page: quantity,
@@ -62,6 +63,8 @@ class CountsController < ApplicationController
         initial_value: @count.initial_value,
         final_value: @count.final_value,
         accuracy: @count.accuracy,
+        already_counted: max-left_count,
+        left_count: left_count,
         employees: @count.employees,
         products: @count.counts_products[array_start..array_end].as_json
       }
