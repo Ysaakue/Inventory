@@ -273,10 +273,11 @@ class CountsController < ApplicationController
   end
 
   def pending_products
+    products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{Count.statuses[@count.status]} and count_products.count_id = #{@count.id}")
     render json: {
       count: {
         status: @count.status,
-        products: @count.counts_products.where(combined_count: false).as_json(simple: true)
+        products: products.as_json(simple: true)
       }
     }
   end
