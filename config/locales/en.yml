@@ -31,3 +31,6 @@
 
 en:
   hello: "Hello world"
+  devise_token_auth:
+    sessions:
+      bad_credentials: "Credenciais inválidas. Tente novamente."
