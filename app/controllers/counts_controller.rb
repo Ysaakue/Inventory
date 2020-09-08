@@ -1,4 +1,5 @@
 class CountsController < ApplicationController
+  load_and_authorize_resource
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [

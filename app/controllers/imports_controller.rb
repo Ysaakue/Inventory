@@ -1,4 +1,5 @@
 class ImportsController < ApplicationController
+  load_and_authorize_resource
   before_action :set_client, only: [:create,:index]
   before_action :set_import, only: [:show]
 
