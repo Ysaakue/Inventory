@@ -4,7 +4,7 @@ class CountsController < ApplicationController
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products, :question_results
+    :pending_products,:question_results, :ignore_product
   ]
 
   def index
@@ -281,6 +281,27 @@ class CountsController < ApplicationController
         products: products.as_json(simple: true)
       }
     }
+  end
+
+  def ignore_product
+    @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
+    @cp.ignore = true
+    @cp.justification = params[:justification]
+    byebug
+    if @cp.save
+      @cp.reset_results
+      @count.delay.calculate_initial_value
+      @count.delay.calculate_final_value
+      render json:{
+        "status": "success",
+        "data": @cp.as_json
+      }
+    else
+      render json:{
+        "status": "errors",
+        "data": @cp.errors
+      }
+    end
   end
 
   private

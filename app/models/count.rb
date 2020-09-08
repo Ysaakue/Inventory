@@ -243,7 +243,7 @@ class Count < ApplicationRecord
 
   def calculate_final_value
     self.final_value = 0
-    self.counts_products.each do |cp|
+    self.counts_products.where(ignore: true,combined_count: true).each do |cp|
       self.final_value += cp.final_total_value
     end
     self.save(validate: false)
@@ -251,7 +251,7 @@ class Count < ApplicationRecord
 
   def calculate_initial_value
     initial_value = 0
-    counts_products.each do |cp|
+    counts_products.where(ignore: false).each do |cp|
       initial_value += cp.product.value * cp.product.current_stock
     end
     self.initial_value = initial_value

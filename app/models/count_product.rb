@@ -36,6 +36,8 @@ class CountProduct < ApplicationRecord
         product_current_stock: product.current_stock,
         product_unit_measurement: product.unit_measurement,
         product_value: product.value,
+        ignore: ignore,
+        justification: justification,
         total_value: total_value,
         percentage_result: percentage_result,
         final_total_value: final_total_value,
@@ -51,6 +53,28 @@ class CountProduct < ApplicationRecord
     result = ActiveRecord::Base.connection.exec_query(sql)
   end
 
+  def reset_results
+    r1 = results.find_by(order: 1)
+    if r1.present?
+      r1.quantity_found = 0
+      r1.save
+    end
+    r2 = results.find_by(order: 2)
+    if r2.present?
+      r2.quantity_found = 0
+      r2.save
+    end
+    r3 = results.find_by(order: 3)
+    if r3.present?
+      r3.destroy
+    end
+    r4 = results.find_by(order: 4)
+    if r4.present?
+      r4.destroy
+    end
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :calculate_attributes
+  handle_asynchronously :reset_results
 end

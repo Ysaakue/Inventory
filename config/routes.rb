@@ -15,13 +15,14 @@ Rails.application.routes.draw do
     end
   end
   get '/counts', to: 'counts#index'
-  post '/counts/:id/question_results', to: 'counts#question_results'
   get '/counts/:id/save_report', to: 'counts#report_save'
   get '/counts/:id/pending_products', to: 'counts#pending_products'
   get '/counts/:id/download_report(.:format)', to: 'counts#report_download'
   get '/counts/:id/report_data', to: 'counts#report_data'
-  put '/submit_result', to: 'counts#submit_quantity_found'
+  post '/counts/:id/question_results', to: 'counts#question_results'
   post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'
+  post '/counts/:id/ignore_product', to: 'counts#ignore_product'
+  put '/submit_result', to: 'counts#submit_quantity_found'
   post '/clients/:client_id/products/import', to: 'imports#create'
   post '/products/set_not_new', to: 'products#set_not_new'
 end
