@@ -22,7 +22,7 @@ class Import < ApplicationRecord
       if product_created.present?
         product_created.description = product["description"]
         product_created.current_stock = product["current_stock"]
-        product_created.value = product["value"].gsub(' R$  ','').gsub(',','.').to_f
+        product_created.value = product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f
         product_created.unit_measurement = product["unit_measurement"]
         if product_created.current_stock == 0
           product_created.active = false
@@ -37,7 +37,7 @@ class Import < ApplicationRecord
           description: product["description"],
           code: product["code"],
           current_stock: product["current_stock"],
-          value: product["value"].gsub(' R$  ','').gsub(',','.').to_f,
+          value: product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f,
           unit_measurement: product["unit_measurement"],
           client_id: self.client_id
         )
