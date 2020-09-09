@@ -3,8 +3,10 @@
 class Ability
   include CanCan::Ability
 
+  alias_action :pending_products,:submit_quantity_found, to: :mobile_app
+
   def initialize(user)
-    can [:read,:update], :all
+    can [:read,:update,:mobile_app], :all
     cannot :create, :all
     if user.present?
       can :manage, :all
