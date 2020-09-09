@@ -1,6 +1,7 @@
 class Count < ApplicationRecord
   belongs_to :client
-  has_and_belongs_to_many :employees, join_table: "counts_employees"
+  has_many :counts_employees, class_name: "CountEmployee"
+  has_many :employees, through: :counts_employees
   has_many :counts_products, class_name: "CountProduct"
   has_many :products, through: :counts_products
   has_many :reports
@@ -58,6 +59,7 @@ class Count < ApplicationRecord
     end
     initial_value = 0
     temp_products.each do |product|
+      byebug
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
@@ -103,6 +105,9 @@ class Count < ApplicationRecord
       self.status = "second_count"
       self.save(validate: false)
       status = self.status
+      if self.divided?
+        self.redistribute_products_lists
+      end
     elsif status_before == "second_count" && two == 0
       if three != 0
         self.status = "third_count"
@@ -302,9 +307,42 @@ class Count < ApplicationRecord
     self.save(validate: false)
   end
 
+  def divide_products_lists
+    ids_ = self.product_ids.shuffle
+    employees_ = self.counts_employees
+    module_ = (ids_.size % employees_.size) - 1
+    each_ = ids_.size / employees_.size
+    employees_.each_with_index do |ce,index|
+      start_ = index * each_
+      if (index <= module_ + 1) && index > 0
+        start_+=1
+      end
+      end_ = start_ + each_ - 1
+      if index <= module_
+        end_+=1
+      end
+      ce.products = {"products": ids_[start_..end_]}
+      ce.save
+    end
+    self.divided = true
+    self.save(validate: false)
+  end
+
+  def redistribute_products_lists
+    previus = counts_employees.last.products
+    counts_employees.each do |ce|
+      temp = ce.products
+      ce.products = previus
+      previus = temp
+      ce.save
+    end
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
   handle_asynchronously :generate_report
+  handle_asynchronously :divide_products_lists
+  handle_asynchronously :redistribute_products_lists
 end

@@ -4,7 +4,7 @@ class CountsController < ApplicationController
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products,:question_results, :ignore_product
+    :pending_products,:question_results,:ignore_product,:divide_products
   ]
 
   def index
@@ -49,7 +49,7 @@ class CountsController < ApplicationController
     file = @count.reports.find_by(content_type: "csv")
     left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,Count.statuses[@count.status]).size
     render json: {
-      current_page: page,
+      current_page: page+1,
       current_quantity_per_page: quantity,
       total_quantity: max,
       current_start: array_start,
@@ -274,7 +274,11 @@ class CountsController < ApplicationController
   end
 
   def pending_products
-    products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{Count.statuses[@count.status]} and count_products.count_id = #{@count.id}")
+    if @count.divided && (@count.first_count? || @count.second_count?)
+      products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{Count.statuses[@count.status] + 1} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
+    else
+      products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{Count.statuses[@count.status] + 1} and count_products.count_id = #{@count.id}")
+    end
     render json: {
       count: {
         status: @count.status,
@@ -302,6 +306,13 @@ class CountsController < ApplicationController
         "data": @cp.errors
       }
     end
+  end
+
+  def divide_products
+    @count.divide_products_lists
+    render json:{
+      "status": "success"
+    }
   end
 
   private

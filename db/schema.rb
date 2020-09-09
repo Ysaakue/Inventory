@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_08_141954) do
+ActiveRecord::Schema.define(version: 2020_09_08_183649) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -92,13 +92,15 @@ ActiveRecord::Schema.define(version: 2020_09_08_141954) do
     t.float "initial_value"
     t.float "final_value", default: 0.0
     t.float "accuracy", default: 0.0
+    t.boolean "divided", default: false
   end
 
-  create_table "counts_employees", id: false, force: :cascade do |t|
-    t.bigint "employee_id", null: false
-    t.bigint "count_id", null: false
-    t.index ["count_id", "employee_id"], name: "index_counts_employees_on_count_id_and_employee_id"
-    t.index ["employee_id", "count_id"], name: "index_counts_employees_on_employee_id_and_count_id"
+  create_table "counts_employees", force: :cascade do |t|
+    t.integer "count_id"
+    t.integer "employee_id"
+    t.json "products"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "delayed_jobs", force: :cascade do |t|
