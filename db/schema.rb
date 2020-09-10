@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_08_183649) do
+ActiveRecord::Schema.define(version: 2020_09_10_202625) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -199,4 +199,17 @@ ActiveRecord::Schema.define(version: 2020_09_08_183649) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
+  add_foreign_key "cities", "states", on_delete: :cascade
+  add_foreign_key "clients", "cities"
+  add_foreign_key "clients", "states"
+  add_foreign_key "count_products", "counts", on_delete: :cascade
+  add_foreign_key "count_products", "products", on_delete: :cascade
+  add_foreign_key "counts", "clients", on_delete: :cascade
+  add_foreign_key "counts_employees", "counts", on_delete: :cascade
+  add_foreign_key "counts_employees", "employees", on_delete: :cascade
+  add_foreign_key "imports", "clients", on_delete: :cascade
+  add_foreign_key "products", "clients", on_delete: :cascade
+  add_foreign_key "reports", "counts", on_delete: :cascade
+  add_foreign_key "results", "count_products", on_delete: :cascade
+  add_foreign_key "results", "employees"
 end
