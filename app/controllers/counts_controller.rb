@@ -291,7 +291,6 @@ class CountsController < ApplicationController
     @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
     @cp.ignore = true
     @cp.justification = params[:justification]
-    byebug
     if @cp.save
       @cp.reset_results
       @count.delay.calculate_initial_value

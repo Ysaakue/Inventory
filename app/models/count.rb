@@ -59,7 +59,6 @@ class Count < ApplicationRecord
     end
     initial_value = 0
     temp_products.each do |product|
-      byebug
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
