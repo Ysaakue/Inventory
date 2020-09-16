@@ -23,6 +23,7 @@ class Product < ApplicationRecord
         unit_measurement: unit_measurement,
         value: value,
         active: active,
+        new: new,
         client: client.fantasy_name,
         location: location
       }
