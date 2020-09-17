@@ -138,9 +138,14 @@ class CountsController < ApplicationController
       }
     elsif cp.count.fourth_count_pending?
       render json:{
-          status: "error",
-          data: "A quarta etapa da contagem precisa ser liberada por um administrador."
-        }
+        status: "error",
+        data: "A quarta etapa da contagem precisa ser liberada por um administrador."
+      }
+    elsif cp.count.calculating?
+      render json:{
+        status: "error",
+        data: "Acontagem está sendo processada, tente novamente."
+      }
     elsif cp.combined_count?
       render json:{
         status: "error",
@@ -164,11 +169,33 @@ class CountsController < ApplicationController
       end
       if result.quantity_found == -1
         result.quantity_found = params[:count][:quantity_found]
-      elsif !result.count_product.product.location.blank? &&
-            !result.count_product.product.location["locations"].blank? &&
-            result.count_product.product.location["locations"].include?(params[:count][:location])
-        product_already_count_in_this_status = true
-      else
+      else #result.quantity_found != -1
+        if cp.count.first_count?
+          if  !cp.product.location.blank? &&
+              !cp.product.location["locations"].blank? &&
+              cp.product.location["locations"].include?(params[:count][:location])
+            product_already_count_in_this_status = true
+          end
+        else #cp.count.status != "first_count"
+          if  !cp.product.location.blank? &&
+            if cp.product.location.["fase"].blank?
+              p = cp.product
+              p.location.["fase"] = cp.count.status
+              p.save(validate: false)
+            elsif cp.product.location.["fase"] != cp.count.status
+              p = cp.product
+              p.location.["fase"] = cp.count.status
+              p.location.["counted_on_fase"] = []
+              p.save(validate: false)
+            end
+          end
+          if  !cp.product.location.blank? &&
+              !cp.product.location["locations"].blank? &&
+              cp.product.location["locations"].include?(params[:count][:location]) &&
+              cp.product.location["counted_on_fase"].include?(cp.product.location["locations"].index(params[:count][:location]))
+            product_already_count_in_this_status = true
+          end
+        end
         result.quantity_found += params[:count][:quantity_found]
       end
       if employee_already_count_this_product
@@ -364,6 +391,8 @@ class CountsController < ApplicationController
         }
       elsif !cp.product.location["locations"].include? params[:count][:location]
         cp.product.location["locations"] << params[:count][:location]
+      elsif cp.product.location["locations"].include? params[:count][:location]
+        cp.product.location["counted_on_fase"] << cp.product.location["locations"].index(params[:count][:location])
       end
     end
     cp.product.save!
