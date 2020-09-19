@@ -178,14 +178,14 @@ class CountsController < ApplicationController
           end
         else #cp.count.status != "first_count"
           if  !cp.product.location.blank? &&
-            if cp.product.location.["fase"].blank?
+            if cp.product.location["fase"].blank?
               p = cp.product
-              p.location.["fase"] = cp.count.status
+              p.location["fase"] = cp.count.status
               p.save(validate: false)
-            elsif cp.product.location.["fase"] != cp.count.status
+            elsif cp.product.location["fase"] != cp.count.status
               p = cp.product
-              p.location.["fase"] = cp.count.status
-              p.location.["counted_on_fase"] = []
+              p.location["fase"] = cp.count.status
+              p.location["counted_on_fase"] = []
               p.save(validate: false)
             end
           end
