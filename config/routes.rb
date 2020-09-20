@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get '/counts/:id/pending_products/:employee_id', to: 'counts#pending_products'
   get '/counts/:id/download_report(.:format)', to: 'counts#report_download'
   get '/counts/:id/report_data', to: 'counts#report_data'
+  get '/counts/:id/products', to:'counts#products_simplified'
   post '/counts/:id/question_results', to: 'counts#question_results'
   post '/counts/:id/fourth_count_release', to: 'counts#fourth_count_release'
   post '/counts/:id/ignore_product', to: 'counts#ignore_product'

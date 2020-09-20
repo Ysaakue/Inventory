@@ -3,8 +3,12 @@ class Product < ApplicationRecord
   has_many :counts_products, class_name: "CountProduct"
 
   def as_json options={}
-    import = if options && options.key?(:import)
-      options[:import]
+    if options   
+      if options.key?(:import)
+        import = options[:import]
+      elsif options.key?(:simple)
+        simple = options[:simple]
+      end
     end
     if import
       {
@@ -13,6 +17,12 @@ class Product < ApplicationRecord
         current_stock: current_stock,
         value: value,
         unit_measurement: unit_measurement
+      }
+    elsif simple
+      {
+        id: id,
+        code: code,
+        description: description
       }
     else
       {

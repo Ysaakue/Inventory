@@ -353,6 +353,13 @@ class CountsController < ApplicationController
     }
   end
 
+  def products_simplified
+    products = @count.products
+    render json:{
+      products: products.as_json(simple: true)
+    }
+  end
+
   private
   def count_params
     params.require(:count).permit(
