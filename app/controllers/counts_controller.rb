@@ -185,7 +185,6 @@ class CountsController < ApplicationController
               p.location["step"] = cp.count.status
               p.location["counted_on_step"] = []
               p.save(validate: false)
-            end
           end
           if  !cp.product.location.blank? &&
               !cp.product.location["locations"].blank? &&
