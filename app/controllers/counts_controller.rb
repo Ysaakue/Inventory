@@ -177,22 +177,20 @@ class CountsController < ApplicationController
             product_already_count_in_this_status = true
           end
         else #cp.count.status != "first_count"
-          if  !cp.product.location.blank? &&
-            if cp.product.location["fase"].blank?
+          if  !cp.product.location.blank? && (
+                cp.product.location["step"].blank? ||
+                cp.product.location["step"] != cp.count.status
+              )
               p = cp.product
-              p.location["fase"] = cp.count.status
-              p.save(validate: false)
-            elsif cp.product.location["fase"] != cp.count.status
-              p = cp.product
-              p.location["fase"] = cp.count.status
-              p.location["counted_on_fase"] = []
+              p.location["step"] = cp.count.status
+              p.location["counted_on_step"] = []
               p.save(validate: false)
             end
           end
           if  !cp.product.location.blank? &&
               !cp.product.location["locations"].blank? &&
               cp.product.location["locations"].include?(params[:count][:location]) &&
-              cp.product.location["counted_on_fase"].include?(cp.product.location["locations"].index(params[:count][:location]))
+              cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
             product_already_count_in_this_status = true
           end
         end
@@ -399,7 +397,7 @@ class CountsController < ApplicationController
       elsif !cp.product.location["locations"].include? params[:count][:location]
         cp.product.location["locations"] << params[:count][:location]
       elsif cp.product.location["locations"].include? params[:count][:location]
-        cp.product.location["counted_on_fase"] << cp.product.location["locations"].index(params[:count][:location])
+        cp.product.location["counted_on_step"] << cp.product.location["locations"].index(params[:count][:location])
       end
     end
     cp.product.save!
