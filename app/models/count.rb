@@ -89,26 +89,32 @@ class Count < ApplicationRecord
     status = ""
     self.counts_products.each do |cp|
       if !cp.combined_count?
-        if cp.results.last.quantity_found == -1
-          if cp.results.size == 1
-            one+=1
-          elsif cp.results.size == 2 || (
-              !cp.product.location["counted_on_step"].blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-            )
-            two+=1
-          elsif cp.results.size == 3 || (
-              !cp.product.location["counted_on_step"].blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-            )
-            three+=1
-          elsif !cp.product.location["counted_on_step"].blank? &&
+        if cp.results.size == 1
+          one+=1
+        elsif cp.results.size == 2 &&
+              cp.results.last.quantity_found == -1 || 
+              (
                 !cp.product.location["locations"].blank? &&
+                cp.product.location["locations"].size > 1 &&
+                !cp.product.location["counted_on_step"].blank? &&
                 cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-            four+=1
-          end
+              )
+          two+=1
+        elsif cp.results.size == 3 &&
+              cp.results.last.quantity_found == -1 || 
+              (
+                !cp.product.location["locations"].blank? &&
+                cp.product.location["locations"].size > 1 &&
+                !cp.product.location["counted_on_step"].blank? &&
+                cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+              )
+          three+=1
+        elsif cp.results.last.quantity_found == -1 ||
+              !cp.product.location["locations"].blank? &&
+              cp.product.location["locations"].size > 1 &&
+              !cp.product.location["counted_on_step"].blank? &&
+              cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+          four+=1
         end
       end
     end

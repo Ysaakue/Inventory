@@ -11,7 +11,13 @@ class Result < ApplicationRecord
       ).save!
     elsif count_product.results.size == 2 
       if  count_product.results.order(:order)[0].quantity_found != -1 &&
-          count_product.results.order(:order)[1].quantity_found != -1
+          count_product.results.order(:order)[1].quantity_found != -1 &&
+          (
+            !count_product.product.location["locations"].blank? &&
+            count_product.product.location["locations"].size > 1 &&
+            !count_product.product.location["counted_on_step"].blank? &&
+            count_product.product.location["counted_on_step"].size != cp.product.location["locations"].size
+          )
         if count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found
           Result.new(
             count_product_id: count_product.id,
