@@ -72,7 +72,7 @@ class CountsController < ApplicationController
         initial_value: @count.initial_value,
         final_value: @count.final_value,
         accuracy: @count.accuracy,
-        already_counted: max-left_count,
+        already_counted: (@count.counts_products.where("ignore = false").size - left_count),
         left_count: left_count,
         employees: @count.employees,
         products: @count.counts_products[array_start..array_end].as_json
