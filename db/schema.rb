@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_10_202625) do
+ActiveRecord::Schema.define(version: 2020_09_23_001707) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -93,6 +93,7 @@ ActiveRecord::Schema.define(version: 2020_09_10_202625) do
     t.float "final_value", default: 0.0
     t.float "accuracy", default: 0.0
     t.boolean "divided", default: false
+    t.integer "goal"
   end
 
   create_table "counts_employees", force: :cascade do |t|

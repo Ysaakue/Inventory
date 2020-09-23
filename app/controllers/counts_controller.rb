@@ -360,7 +360,7 @@ class CountsController < ApplicationController
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:client_id,:products_quantity_to_count,
+      :date,:status,:client_id,:products_quantity_to_count,:goal,
       employee_ids: []
     )
   end

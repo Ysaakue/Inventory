@@ -41,6 +41,7 @@ class Count < ApplicationRecord
       {
         id: id,
         date: date,
+        goal: goal,
         status: status,
         client: client.fantasy_name,
         employees: employees,
