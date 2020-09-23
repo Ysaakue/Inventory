@@ -42,6 +42,9 @@ class Import < ApplicationRecord
           client_id: self.client_id
         )
         new_product.location = {}
+        if new_product.current_stock == nil
+          new_product.current_stock = 0
+        end
         if new_product.current_stock == 0
           new_product.active = false
         end

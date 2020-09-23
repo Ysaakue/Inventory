@@ -38,4 +38,7 @@ class ImportsController < ApplicationController
   def set_client
     @client = Client.find(params[:client_id])
   end
+
+  def import_params
+  end
 end
