@@ -153,18 +153,36 @@ class CountsController < ApplicationController
         data: "Não há divergências na contagem desse produto."
       }
     else
+      if cp.count.divided
+        ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
+        if ce.products["products"].index(params[:count][:product_id]) == nil
+          render json:{
+            status: "error",
+            data: "Esse produto foi designado a outro auditor."
+          }
+          return
+        end
+      end
       if cp.count.first_count?
         result = cp.results.order(:order)[0]
       elsif cp.count.second_count?
         if cp.results.order(:order)[0].employee_id == params[:count][:employee_id]
-          employee_already_count_this_product = true
+          render json: {
+            status: "error",
+            data: "Funcionário já realizou uma contagem desse produto."
+          }
+          return
         end
         result = cp.results.order(:order)[1]
       elsif cp.count.third_count?
         result = cp.results.order(:order)[2]
       elsif cp.count.fourth_count?
         if cp.count.fourth_count_employee != params[:count][:employee_id]
-          unassigned_employee = true
+          render json:{
+            status: "error",
+            data: "Outro funcionário foi designado para a quarta etapa da contagem."
+          }
+          return
         end
         result = cp.results.order(:order)[3]
       end
@@ -175,7 +193,11 @@ class CountsController < ApplicationController
           if  !cp.product.location.blank? &&
               !cp.product.location["locations"].blank? &&
               cp.product.location["locations"].include?(params[:count][:location])
-            product_already_count_in_this_status = true
+            render json:{
+              status: "error",
+              data: "Produto já contado nessa etapa."
+            }
+            return
           end
         else #cp.count.status != "first_count"
           if  !cp.product.location.blank? && (
@@ -191,35 +213,23 @@ class CountsController < ApplicationController
               !cp.product.location["locations"].blank? &&
               cp.product.location["locations"].include?(params[:count][:location]) &&
               cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
-            product_already_count_in_this_status = true
+            render json:{
+              status: "error",
+              data: "Produto já contado nessa etapa."
+            }
+            return
           end
         end
         result.quantity_found += params[:count][:quantity_found]
       end
-      if employee_already_count_this_product
-        render json: {
-          status: "error",
-          data: "Funcionário já realizou uma contagem desse produto."
-        }
-      elsif product_already_count_in_this_status
-        render json:{
-          status: "error",
-          data: "Produto já contado nessa etapa."
-        }
-      elsif unassigned_employee
-        render json:{
-          status: "error",
-          data: "Outro funcionário foi designado para a quarta etapa da contagem."
-        }
-      else
-        result.employee_id = params[:count][:employee_id]
-        result.save!
-        update_product_location(cp)
-        render json:{
-          status: "success",
-          data: result
-        }
-      end
+      
+      result.employee_id = params[:count][:employee_id]
+      result.save!
+      update_product_location(cp)
+      render json:{
+        status: "success",
+        data: result
+      }
     end
   end
 
