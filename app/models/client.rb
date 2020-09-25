@@ -2,6 +2,7 @@ class Client < ApplicationRecord
   has_many :products
   has_many :counts
   has_many :imports
+  has_one :user
   belongs_to :city
   belongs_to :state
 
@@ -15,6 +16,7 @@ class Client < ApplicationRecord
       fantasy_name: fantasy_name,
       state_registration: state_registration,
       email: email,
+      has_access: (user.blank?? false : !user.suspended),
       contact_name_telephone: contact_name_telephone,
       telephone_number: telephone_number,
       contact_name_cell_phone: contact_name_cell_phone,

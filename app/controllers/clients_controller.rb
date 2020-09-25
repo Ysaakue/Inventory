@@ -1,6 +1,6 @@
 class ClientsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_client,only:[:update,:destroy]
+  before_action :set_client,only:[:update,:destroy,:grant_access,:suspend_access]
 
   def index
     @clients = Client.all
@@ -48,6 +48,56 @@ class ClientsController < ApplicationController
       render json: { "status": "success"}, status: 202
     else
       render json: { "status": "error"}
+    end
+  end
+
+  def suspend_access
+    @user = @client.user
+      @user.suspended = true
+      if @user.save
+        render json:{
+          status: "success",
+          data: @user
+        }
+      else
+        render json:{
+          status: "error",
+          data: @user.errors
+        }
+      end
+  end
+
+  def grant_access
+    if @client.user.present?
+      @user = @client.user
+      @user.suspended = false
+      if @user.save
+        render json:{
+          status: "success",
+          data: @user
+        }
+      else
+        render json:{
+          status: "error",
+          data: @user.errors
+        }
+      end
+    else
+      @user = User.new
+      @user.email = @client.email
+      @user.password = @client.cnpj.gsub('.','')[0..5]
+      @user.client = @client
+      if @user.save
+        render json:{
+          status: "success",
+          data: @user
+        }, status: :created
+      else
+        render json:{
+          status: "error",
+          data: @user.errors
+        },status: :unprocessable_entity
+      end
     end
   end
 

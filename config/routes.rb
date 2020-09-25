@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  mount_devise_token_auth_for 'User', at: 'auth'
+  mount_devise_token_auth_for 'User', at: 'auth', controllers: {
+    sessions: 'overrides/sessions'
+  }
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
   get "states/:state_id/cities", to: "cities#index"
   resources :clients, except: [:new,:edit] do 
@@ -26,5 +28,7 @@ Rails.application.routes.draw do
   post '/counts/:id/divide_products', to: 'counts#divide_products'
   put '/submit_result', to: 'counts#submit_quantity_found'
   post '/clients/:client_id/products/import', to: 'imports#create'
+  post '/clients/:id/grant_access', to: 'clients#grant_access'
+  post '/clients/:id/suspend_access', to: 'clients#suspend_access'
   post '/products/set_not_new', to: 'products#set_not_new'
 end

@@ -271,7 +271,7 @@ class CountsController < ApplicationController
   def report_save
     @count.generate_report(params[:file_format])
     render json: {
-      "status": "sucess",
+      "status": "success",
       "data": "O arquivo está sendo gerado."
     }
   end
