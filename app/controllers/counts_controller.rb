@@ -74,6 +74,7 @@ class CountsController < ApplicationController
         accuracy: @count.accuracy,
         already_counted: (@count.counts_products.where("ignore = false").size - left_count),
         left_count: left_count,
+        quantity_ignored: @count.counts_products.where("ignore = true").size,
         employees: @count.employees,
         products: @count.counts_products[array_start..array_end].as_json
       }
