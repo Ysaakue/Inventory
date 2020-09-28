@@ -260,15 +260,21 @@ class Count < ApplicationRecord
   end
 
   def calculate_accuracy
+    counts_products.where(ignore: false).each do |cp|
+      cp.calculate_attributes_without_delay(false)
+    end
+    self.calculate_initial_value
+    self.calculate_final_value
     self.accuracy = ((self.final_value)*100)/(self.initial_value)
     self.save(validate: false)
   end
 
   def calculate_final_value
-    self.final_value = 0
-    self.counts_products.where(ignore: true,combined_count: true).each do |cp|
-      self.final_value += cp.final_total_value
+    final_value = 0
+    counts_products.where(ignore: false,combined_count: true).each do |cp|
+      final_value += cp.final_total_value
     end
+    self.final_value = final_value
     self.save(validate: false)
   end
 
@@ -356,6 +362,13 @@ class Count < ApplicationRecord
     end
   end
 
+  def complete_products_step
+    counts_products.where(combined_count: false).each do |cp|
+      cp.combined_count = true
+      cp.save(validate: false)
+    end
+  end
+
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
   handle_asynchronously :verify_count
@@ -363,4 +376,6 @@ class Count < ApplicationRecord
   handle_asynchronously :generate_report
   handle_asynchronously :divide_products_lists
   handle_asynchronously :redistribute_products_lists
+  handle_asynchronously :complete_products_step
+  handle_asynchronously :calculate_accuracy
 end

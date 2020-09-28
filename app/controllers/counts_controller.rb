@@ -240,6 +240,7 @@ class CountsController < ApplicationController
       @count.fourth_count_employee = params[:employee_id]
     else
       @count.status = "completed"
+      @count.complete_products_step
     end
     if @count.save(validate: false)
       render json:{
