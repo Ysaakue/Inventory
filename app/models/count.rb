@@ -88,7 +88,7 @@ class Count < ApplicationRecord
     three = 0
     four = 0
     status = ""
-    self.counts_products.each do |cp|
+    self.counts_products.where(ignore: false).each do |cp|
       if !cp.combined_count?
         if cp.results.size == 1
           one+=1

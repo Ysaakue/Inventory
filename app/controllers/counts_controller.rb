@@ -343,6 +343,7 @@ class CountsController < ApplicationController
       @cp.reset_results
       @count.delay.calculate_initial_value
       @count.delay.calculate_final_value
+      @count.verify_count
       render json:{
         "status": "success",
         "data": @cp.as_json
