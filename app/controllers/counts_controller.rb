@@ -66,6 +66,7 @@ class CountsController < ApplicationController
       count: {
         id: @count.id,
         date: @count.date,
+        goal: goal,
         status: @count.status,
         report_csv_status: (file.present?? file.status : "nonexistent"),
         client: @count.client.fantasy_name,
