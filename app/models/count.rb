@@ -11,13 +11,13 @@ class Count < ApplicationRecord
   validate :date_not_retrograde
 
   enum status: [
-    :first_count,
-    :second_count,
-    :third_count,
-    :fourth_count_pending,
-    :fourth_count,
-    :completed,
-    :calculating
+    :first_count,           #0 -> 1
+    :second_count,          #1 -> 2
+    :third_count,           #2 -> 3
+    :fourth_count_pending,  #3
+    :fourth_count,          #4 -> 4
+    :completed,             #5
+    :calculating            #6
   ]
 
   def date_not_retrograde
@@ -265,7 +265,12 @@ class Count < ApplicationRecord
     end
     self.calculate_initial_value
     self.calculate_final_value
-    self.accuracy = ((self.final_value)*100)/(self.initial_value)
+    accuracy_ = ((self.final_value)*100)/(self.initial_value)
+    if accuracy_ > 100
+      difference = accuracy_ - 100
+      accuracy_ = 100 - difference
+    end
+    self.accuracy = accuracy_
     self.save(validate: false)
   end
 
