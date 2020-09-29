@@ -8,17 +8,17 @@ class CountsController < ApplicationController
   ]
 
   def index
-    @counts = Count.all
+    @counts = Count.all.order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
   def index_by_client
-    @counts = @client.counts
+    @counts = @client.counts.order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
   def index_by_employee
-    @counts = @employee.counts.where('status != 4 or fourth_count_employee =?', @employee.id).not_completed.not_fourth_count_pending
+    @counts = @employee.counts.where('status != 4 or fourth_count_employee =?', @employee.id).not_completed.not_fourth_count_pending.order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
   
