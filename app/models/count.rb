@@ -111,10 +111,12 @@ class Count < ApplicationRecord
               )
           three+=1
         elsif cp.results.last.quantity_found == -1 ||
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["locations"].size > 1 &&
-              !cp.product.location["counted_on_step"].blank? &&
-              cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+              (
+                !cp.product.location["locations"].blank? &&
+                cp.product.location["locations"].size > 1 &&
+                !cp.product.location["counted_on_step"].blank? &&
+                cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+              )
           four+=1
         end
       end
@@ -328,8 +330,9 @@ class Count < ApplicationRecord
           order: 4,
         ).save!
       else
-        cp.combined_count = true
-        cp.save
+        r = cp.results.order(:order).last
+        r.quantity_found = 0
+        r.save
       end
     end
     self.status = "fourth_count"
@@ -379,7 +382,7 @@ class Count < ApplicationRecord
     if status < 3
       status+=1
     end
-    if status == 1 && CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{self.id}").size ==1
+    if status == 1 && CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{self.id}").size == 0
       10.minutes.from_now
     else
       1.seconds.from_now

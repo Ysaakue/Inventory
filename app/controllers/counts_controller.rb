@@ -239,6 +239,7 @@ class CountsController < ApplicationController
       @count.fourth_count_employee = params[:employee_id]
     else
       @count.status = "completed"
+      Result.where('count_product_id in (?) and results.order = 4 and quantity_found = -1',@count.counts_products.ids).destroy_all
       @count.complete_products_step
     end
     if @count.save(validate: false)

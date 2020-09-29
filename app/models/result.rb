@@ -50,12 +50,10 @@ class Result < ApplicationRecord
       if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found &&
           count_product.results.order(:order)[2].quantity_found != count_product.results.order(:order)[1].quantity_found &&
           count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found
-        if count_product.count.fourth_count_released?
-          Result.new(
-            count_product_id: count_product.id,
-            order: 4,
-          ).save!
-        end
+        Result.new(
+          count_product_id: count_product.id,
+          order: 4,
+        ).save!
       else
         count_product.combined_count = true
         count_product.save
