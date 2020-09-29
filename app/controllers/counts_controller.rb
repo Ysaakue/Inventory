@@ -153,9 +153,9 @@ class CountsController < ApplicationController
         data: "Não há divergências na contagem desse produto."
       }
     else
-      if cp.count.divided
+      if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
         ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
-        if ce.products["products"].index(params[:count][:product_id]) == nil
+        if ce.products["products"].index(params[:count][:product_id].to_i) == nil
           render json:{
             status: "error",
             data: "Esse produto foi designado a outro auditor."
@@ -187,6 +187,13 @@ class CountsController < ApplicationController
         result = cp.results.order(:order)[3]
       end
       if result.quantity_found == -1
+        if  cp.product.location["step"].blank? ||
+            cp.product.location["step"] != cp.count.status
+          p = cp.product
+          p.location["step"] = cp.count.status
+          p.location["counted_on_step"] = []
+          p.save(validate: false)
+        end
         result.quantity_found = params[:count][:quantity_found]
       else #result.quantity_found != -1
         if cp.count.first_count?
@@ -200,15 +207,6 @@ class CountsController < ApplicationController
             return
           end
         else #cp.count.status != "first_count"
-          if  !cp.product.location.blank? && (
-                cp.product.location["step"].blank? ||
-                cp.product.location["step"] != cp.count.status
-              )
-              p = cp.product
-              p.location["step"] = cp.count.status
-              p.location["counted_on_step"] = []
-              p.save(validate: false)
-          end
           if  !cp.product.location.blank? &&
               !cp.product.location["locations"].blank? &&
               cp.product.location["locations"].include?(params[:count][:location]) &&
@@ -319,13 +317,13 @@ class CountsController < ApplicationController
 
   def pending_products
     status = Count.statuses[@count.status]
-    if status < 2
+    if status < 3
       status+=1
     end
-    if @count.divided && (@count.first_count? || @count.second_count?)
-      products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
+    if @count.divided && (status == 1 || status == 2)
+      products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
     else
-      products = CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id}")
+      products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id}")
     end
     render json: {
       count: {
@@ -391,27 +389,28 @@ class CountsController < ApplicationController
   end
 
   def update_product_location(cp)
-    if cp.product.location.blank?
-      cp.product.location = {
+    product = cp.product
+    if product.location.blank?
+      product.location = {
         id: params[:count][:count_id],
         locations: [
           params[:count][:location]
         ]
       }
     else
-      if cp.product.location["id"] != params[:count][:count_id]
-        cp.product.location = {
-          id: params[:count][:count_id],
-          locations: [
-            params[:count][:location]
-          ]
-        }
-      elsif !cp.product.location["locations"].include? params[:count][:location]
-        cp.product.location["locations"] << params[:count][:location]
-      elsif cp.product.location["locations"].include? params[:count][:location]
-        cp.product.location["counted_on_step"] << cp.product.location["locations"].index(params[:count][:location])
+      if product.location["id"] != params[:count][:count_id]
+        product.location["id"] = params[:count][:count_id]
+        product.location["locations"] = []
+        product.location["locations"] << params[:count][:location]
+        product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
+      elsif !product.location["locations"].include?(params[:count][:location])
+        product.location["locations"] << params[:count][:location]
+        product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
+      elsif !product.location["locations"].blank? &&
+            product.location["locations"].include?(params[:count][:location])
+        product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       end
     end
-    cp.product.save!
+    product.save(validate: false)
   end
 end

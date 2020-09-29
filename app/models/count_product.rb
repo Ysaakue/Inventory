@@ -29,7 +29,7 @@ class CountProduct < ApplicationRecord
       {
         product_code: product.code,
         product_description: product.description,
-        locations: (!product.location.blank? && !product.location["locations"].blank?)? product.location["locations"] : [],
+        location_data: product.location,
       }
     else
       {

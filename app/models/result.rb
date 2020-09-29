@@ -13,10 +13,15 @@ class Result < ApplicationRecord
       if  count_product.results.order(:order)[0].quantity_found != -1 &&
           count_product.results.order(:order)[1].quantity_found != -1 &&
           (
-            !count_product.product.location["locations"].blank? &&
-            count_product.product.location["locations"].size > 1 &&
-            !count_product.product.location["counted_on_step"].blank? &&
-            count_product.product.location["counted_on_step"].size != cp.product.location["locations"].size
+            (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size == 1
+            ) || (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size > 1 &&
+              !count_product.product.location["counted_on_step"].blank? &&
+              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
+            )
           )
         if count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found
           Result.new(
@@ -30,7 +35,18 @@ class Result < ApplicationRecord
         end
       end # values != -1
     elsif count_product.results.size == 3 &&
-          count_product.results.order(:order)[2].quantity_found != -1
+          count_product.results.order(:order)[2].quantity_found != -1 &&
+          (
+            (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size == 1
+            ) || (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size > 1 &&
+              !count_product.product.location["counted_on_step"].blank? &&
+              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
+            )
+          )
       if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found &&
           count_product.results.order(:order)[2].quantity_found != count_product.results.order(:order)[1].quantity_found &&
           count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found
@@ -45,7 +61,18 @@ class Result < ApplicationRecord
         count_product.save
         count_product.calculate_attributes
       end
-    elsif count_product.results.order(:order)[3].quantity_found != -1
+    elsif count_product.results.order(:order)[3].quantity_found != -1 &&
+          (
+            (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size == 1
+            ) || (
+              !count_product.product.location["locations"].blank? &&
+              count_product.product.location["locations"].size > 1 &&
+              !count_product.product.location["counted_on_step"].blank? &&
+              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
+            )
+          )
       count_product.combined_count = true
       count_product.save!
       count_product.calculate_attributes
