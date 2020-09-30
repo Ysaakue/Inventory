@@ -203,7 +203,7 @@ class Count < ApplicationRecord
     cols = [
       "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
       "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
-      "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %"
+      "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
     ]
 
     CSV.generate(headers: true) do |csv|
@@ -222,7 +222,7 @@ class Count < ApplicationRecord
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
         row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
         row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
-        row << cp.results.last.quantity_found #SALDO FINAL
+        row << ((cp.results.last.blank? || cp.results.last.quantity_found < 0)? '-' : cp.results.last.quantity_found) #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
         stands  = []
@@ -245,6 +245,7 @@ class Count < ApplicationRecord
         row << pallets.join(',') #PALLETS
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
         row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+        row << (cp.ignore?? cp.justification : '') #JUSTIFICATIVA
         csv << row
       end
     end
@@ -297,15 +298,14 @@ class Count < ApplicationRecord
   def generate_report(content_type)
     content_type ||= "csv"
     @report = reports.find_by(content_type: content_type)
-    if !@report.present? || (@report.present? && @report.completed?)
-      if !@report.present?
-        @report = Report.new
-        @report.count_id = self.id
-      end
+    if !@report.present?
+      @report = Report.new
+      @report.count_id = self.id
+    end
+    if @report.present? && !@report.generating?
       @report.filename = "relatorio_contagem_#{(!(self.client.fantasy_name.include? " ") == false)? (self.client.fantasy_name.gsub! " ", "_") : (self.client.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
       @report.content_type = content_type
       @report.generating!
-      @report.save!
       
       if content_type == "pdf"
         pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: self})
