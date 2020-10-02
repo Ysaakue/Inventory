@@ -371,7 +371,6 @@ class CountsController < ApplicationController
   end
 
   def verify_count
-    byebug
     @count.verify_count
     render json:{
       status: "success"
