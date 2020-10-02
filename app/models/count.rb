@@ -376,22 +376,10 @@ class Count < ApplicationRecord
       cp.save(validate: false)
     end
   end
-
-  def when_to_run
-    status = Count.statuses[self.status]
-    if status < 3
-      status+=1
-    end
-    if status == 1 && CountProduct.joins("inner join results on results.quantity_found = -1 and results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{self.id}").size == 0
-      10.minutes.from_now
-    else
-      1.seconds.from_now
-    end
-  end
-
+  
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
-  handle_asynchronously :verify_count, :run_at => Proc.new { |c| c.when_to_run }
+  handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
   handle_asynchronously :generate_report
   handle_asynchronously :divide_products_lists

@@ -75,7 +75,9 @@ class Result < ApplicationRecord
       count_product.save!
       count_product.calculate_attributes
     end
-    count_product.count.verify_count
+    if !count_product.count.first_count?
+      count_product.count.verify_count
+    end
   end
 
   def as_json options={}

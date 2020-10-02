@@ -4,7 +4,7 @@ class CountsController < ApplicationController
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products,:question_results,:ignore_product,:divide_products
+    :pending_products,:question_results,:ignore_product,:divide_products,:verify_count
   ]
 
   def index
@@ -367,6 +367,14 @@ class CountsController < ApplicationController
     products = @count.products
     render json:{
       products: products.as_json(simple: true)
+    }
+  end
+
+  def verify_count
+    byebug
+    @count.verify_count
+    render json:{
+      status: "success"
     }
   end
 
