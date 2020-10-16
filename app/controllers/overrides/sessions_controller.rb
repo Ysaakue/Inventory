@@ -18,9 +18,9 @@ module Overrides
 
         if @resource.suspended
           render json:{
-            status: "error",
-            data: "Sua conta foi suspensa, contate um administrador para saber mais."
-          }
+            success: false,
+            errors:["Sua conta foi suspensa, mande um email para contato@ntconsulting.com.br para saber mais."]
+          }, status: 401
           return
         end
         @token = @resource.create_token
