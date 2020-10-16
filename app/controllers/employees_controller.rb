@@ -3,7 +3,7 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: [:show,:update,:destroy]
   
   def index
-    @employees = Employee.all
+    @employees = current_user.employees
     render json: @employees.as_json(index: true)
   end
   
@@ -13,6 +13,7 @@ class EmployeesController < ApplicationController
   
   def create
     @employee = Employee.new(employee_params)
+    @employee.user = current_user
     if @employee.save
       render json:{
         "status": "success",

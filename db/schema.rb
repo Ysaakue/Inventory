@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_09_25_151825) do
+ActiveRecord::Schema.define(version: 2020_10_15_182507) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -94,6 +94,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_151825) do
     t.float "accuracy", default: 0.0
     t.boolean "divided", default: false
     t.integer "goal"
+    t.integer "user_id"
   end
 
   create_table "counts_employees", force: :cascade do |t|
@@ -124,6 +125,7 @@ ActiveRecord::Schema.define(version: 2020_09_25_151825) do
     t.string "cpf"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.integer "user_id"
     t.index ["cpf"], name: "index_employees_on_cpf", unique: true
   end
 

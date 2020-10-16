@@ -8,7 +8,7 @@ class CountsController < ApplicationController
   ]
 
   def index
-    @counts = Count.all.order(date: :desc,id: :desc)
+    @counts = Count.where('user_id = ? or client_id = ?',current_user.id,(!current_user.client.blank?? current_user.client.id : 0)).order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
@@ -91,6 +91,7 @@ class CountsController < ApplicationController
     if !params[:count][:clear_locations].blank? && params[:count][:clear_locations]
       Product.clear_location(params[:client_id])
     end
+    @count.user = current_user
     if @count.save
       render json:{
         "status": "success",

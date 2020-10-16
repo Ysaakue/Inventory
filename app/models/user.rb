@@ -5,6 +5,7 @@ class User < ActiveRecord::Base
   devise :database_authenticatable, :registerable,:recoverable, :rememberable, :trackable, :validatable
   include DeviseTokenAuth::Concerns::User
   belongs_to :client, optional: true
+  has_many :employees
 
   validates :client,presence: true, if: :need_client_id?
 

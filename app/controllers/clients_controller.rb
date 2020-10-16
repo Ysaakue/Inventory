@@ -3,7 +3,11 @@ class ClientsController < ApplicationController
   before_action :set_client,only:[:update,:destroy,:grant_access,:suspend_access]
 
   def index
-    @clients = Client.all
+    if current_user.client_id.blank?
+      @clients = Client.all
+    else
+      @clients = Client.where('id = ?',current_user.client.id)
+    end
     render json: @clients
   end
   

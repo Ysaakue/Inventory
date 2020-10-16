@@ -2,6 +2,7 @@ class Employee < ApplicationRecord
   has_many :counts_employees, class_name: "CountEmployee"
   has_many :counts, through: :counts_employees
   has_many :results
+  belongs_to :user
 
   validates :name, presence: { message: "Nome não pode ficar em branco" }
   validates :cpf, uniqueness: { message: "Já existe um operador com esse CPF" }
