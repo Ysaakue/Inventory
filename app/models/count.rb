@@ -1,5 +1,6 @@
 class Count < ApplicationRecord
   belongs_to :client
+  belongs_to :user
   has_many :counts_employees, class_name: "CountEmployee"
   has_many :employees, through: :counts_employees
   has_many :counts_products, class_name: "CountProduct"
