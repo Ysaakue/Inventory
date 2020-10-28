@@ -81,94 +81,96 @@ class Count < ApplicationRecord
   end
 
   def verify_count
-    status_before = self.status
-    self.status = "calculating"
-    self.save(validate: false)
-    one = 0
-    two = 0
-    three = 0
-    four = 0
-    status = ""
-    self.counts_products.where(ignore: false).each do |cp|
-      if !cp.combined_count?
-        if cp.results.size == 1
-          one+=1
-        elsif cp.results.size == 2 &&
-              cp.results.last.quantity_found == -1 || 
-              (
-                !cp.product.location["locations"].blank? &&
-                cp.product.location["locations"].size > 1 &&
-                !cp.product.location["counted_on_step"].blank? &&
-                cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-              )
-          two+=1
-        elsif cp.results.size == 3 &&
-              cp.results.last.quantity_found == -1 || 
-              (
-                !cp.product.location["locations"].blank? &&
-                cp.product.location["locations"].size > 1 &&
-                !cp.product.location["counted_on_step"].blank? &&
-                cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-              )
-          three+=1
-        elsif cp.results.last.quantity_found == -1 ||
-              (
-                !cp.product.location["locations"].blank? &&
-                cp.product.location["locations"].size > 1 &&
-                !cp.product.location["counted_on_step"].blank? &&
-                cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
-              )
-          four+=1
+    if !self.calculating?
+      status_before = self.status
+      self.status = "calculating"
+      self.save(validate: false)
+      one = 0
+      two = 0
+      three = 0
+      four = 0
+      status = ""
+      self.counts_products.where(ignore: false).each do |cp|
+        if !cp.combined_count?
+          if cp.results.size == 1
+            one+=1
+          elsif cp.results.size == 2 &&
+                cp.results.last.quantity_found == -1 || 
+                (
+                  !cp.product.location["locations"].blank? &&
+                  cp.product.location["locations"].size > 1 &&
+                  !cp.product.location["counted_on_step"].blank? &&
+                  cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+                )
+            two+=1
+          elsif cp.results.size == 3 &&
+                cp.results.last.quantity_found == -1 || 
+                (
+                  !cp.product.location["locations"].blank? &&
+                  cp.product.location["locations"].size > 1 &&
+                  !cp.product.location["counted_on_step"].blank? &&
+                  cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+                )
+            three+=1
+          elsif cp.results.last.quantity_found == -1 ||
+                (
+                  !cp.product.location["locations"].blank? &&
+                  cp.product.location["locations"].size > 1 &&
+                  !cp.product.location["counted_on_step"].blank? &&
+                  cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
+                )
+            four+=1
+          end
         end
       end
-    end
-    if status_before == "first_count" && one == 0
-      self.status = "second_count"
-      self.save(validate: false)
-      status = self.status
-      if self.divided?
-        self.redistribute_products_lists
-      end
-    elsif status_before == "second_count" && two == 0
-      if three != 0
-        self.status = "third_count"
-      else
+      if status_before == "first_count" && one == 0
+        self.status = "second_count"
+        self.save(validate: false)
+        status = self.status
+        if self.divided?
+          self.redistribute_products_lists
+        end
+      elsif status_before == "second_count" && two == 0
+        if three != 0
+          self.status = "third_count"
+        else
+          self.status = "completed"
+        end
+        self.save(validate: false)
+        status = self.status
+      elsif status_before == "third_count" && three == 0
+        if four != 0
+          self.status = "fourth_count_pending"
+        else
+          self.status = "completed"
+        end
+        self.save(validate: false)
+        status = self.status
+      elsif status_before == "fourth_count" && four == 0
         self.status = "completed"
+        self.save(validate: false)
+        status = self.status
       end
-      self.save(validate: false)
-      status = self.status
-    elsif status_before == "third_count" && three == 0
-      if four != 0
-        self.status = "fourth_count_pending"
-      else
-        self.status = "completed"
+
+      if status == ""
+        # status_changed = true
+        self.status = status_before
+        self.save(validate: false)
+      # else
+      #   status_changed = false
       end
-      self.save(validate: false)
-      status = self.status
-    elsif status_before == "fourth_count" && four == 0
-      self.status = "completed"
-      self.save(validate: false)
-      status = self.status
-    end
 
-    if status == ""
-      # status_changed = true
-      self.status = status_before
-      self.save(validate: false)
-    # else
-    #   status_changed = false
+      # msg = {
+      #   id: self.id,
+      #   status: status,
+      #   status_changed: status_changed,
+      #   first_count_pending: one,
+      #   second_count_pending: two,
+      #   third_count_pending: three,
+      #   fourth_count_pending: four
+      # }
+      # $redis.publish "count_status_#{self.id}", msg.to_json
     end
-
-    # msg = {
-    #   id: self.id,
-    #   status: status,
-    #   status_changed: status_changed,
-    #   first_count_pending: one,
-    #   second_count_pending: two,
-    #   third_count_pending: three,
-    #   fourth_count_pending: four
-    # }
-    # $redis.publish "count_status_#{self.id}", msg.to_json
   end
 
   def generate_fourth_results
@@ -332,7 +334,7 @@ class Count < ApplicationRecord
         ).save!
       else
         r = cp.results.order(:order).last
-        r.quantity_found = 0
+        r.quantity_found = -1
         r.save
       end
     end
