@@ -16,13 +16,13 @@ class EmployeesController < ApplicationController
     @employee.user = current_user
     if @employee.save
       render json:{
-        "status": "success",
-        "data": @employee
+        status: "success",
+        message: @employee
       }, status: :created
     else
       render json:{
-        "status": "error",
-        "data": @employee.errors
+        status: "error",
+        message: @employee.errors
       }, status: :unprocessable_entity
     end
   end
@@ -30,22 +30,22 @@ class EmployeesController < ApplicationController
   def update
     if @employee.update(employee_params)
       render json:{
-        "status": "success",
-        "data": @employee
+        status: "success",
+        message: @employee
       }
     else
       render json:{
-        "status": "error",
-        "data": @employee.errors
+        status: "error",
+        message: @employee.errors
       }, status: :unprocessable_entity
     end
   end
   
   def destroy
     if @employee.destroy
-      render json:{"status": "success"}, status: 202
+      render json:{status: "success"}, status: 202
     else
-      render json:{"status": "error"}
+      render json:{status: "error"}
     end
   end
 
@@ -53,13 +53,13 @@ class EmployeesController < ApplicationController
     @employee = Employee.find_by(cpf: params[:cpf])
     if @employee.present?
       render json: {
-        "status": "success",
-        "data": @employee
+        status: "success",
+        message: @employee
       }
     else
       render json: {
-        "status": "error",
-        "data": "Operador não encontrado"
+        status: "error",
+        message: "Operador não encontrado"
       }
     end
   end

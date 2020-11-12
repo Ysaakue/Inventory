@@ -53,5 +53,12 @@ module Inventory
 
     # Host and Port to redis
     # $redis = Redis.new(url: ENV["REDIS_URL"])
+
+    #configure timezone
+    config.time_zone = 'America/Fortaleza'
+    
+    # set locale language
+    config.i18n.default_locale = :'pt-BR'
+    config.i18n.available_locales = %w(pt-BR en)
   end
 end

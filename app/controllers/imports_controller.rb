@@ -19,13 +19,13 @@ class ImportsController < ApplicationController
     @import.products = params[:products]
     if @import.save
       render json:{
-        "status": "success",
-        "data": @import
+        status: "success",
+        message: @import
       }, status: :created
     else
       render json: {
-        "status": "error",
-        "data": @import.errors
+        status: "error",
+        message: @import.errors
       }, status: :unprocessable_entity
     end
   end

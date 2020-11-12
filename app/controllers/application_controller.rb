@@ -6,7 +6,7 @@ class ApplicationController < ActionController::API
     @error_message = exception.message
     render json:{
       status: "error",
-      "data": @error_message
+      "message": @error_message
     }, status: 401
   end
 end

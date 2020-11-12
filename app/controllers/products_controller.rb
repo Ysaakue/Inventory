@@ -26,13 +26,13 @@ class ProductsController < ApplicationController
     @product.client_id = params[:client_id]
     if @product.save
       render json:{
-        "status": "success",
-        "data": @product
+        status: "success",
+        message: @product
       }, status: :created
     else
       render json:{
-        "status": "error",
-        "data": @product.errors
+        status: "error",
+        message: @product.errors
       }, status: :unprocessable_entity
     end
   end
@@ -40,28 +40,28 @@ class ProductsController < ApplicationController
   def update
     if @product.update(product_params)
       render json:{
-        "status": "success",
-        "data": @product
+        status: "success",
+        message: @product
       }
     else
       render json:{
-        "status": "error",
-        "data": @product.errors
+        status: "error",
+        message: @product.errors
       }, status: :unprocessable_entity
     end
   end
   
   def destroy
     if @product.destroy
-      render json:{"status": "success"}, status: 202
+      render json:{status: "success"}, status: 202
     else
-      render json:{"status": "error"}
+      render json:{status: "error"}
     end
   end
 
   def set_not_new
     Product.set_not_new(params[:products])
-    render json:{"status": "success"}, status: 202
+    render json:{status: "success"}, status: 202
   end
 
   private

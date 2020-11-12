@@ -22,13 +22,13 @@ class ClientsController < ApplicationController
     end
     if @client.save
       render json:{
-        "status": "success",
-        "data": @client
+        status: "success",
+        message: @client
       }, status: :created
     else
       render json:{
-        "status": "error",
-        "data": @client.errors
+        status: "error",
+        message: @client.errors
       }, status: :unprocessable_entity
     end
   end
@@ -36,22 +36,22 @@ class ClientsController < ApplicationController
   def update
     if @client.update(client_params)
       render json:{
-        "status": "success",
-        "data": @client
+        status: "success",
+        message: @client
       }
     else
       render json:{
-        "status": "error",
-        "data": @client.errors
+        status: "error",
+        message: @client.errors
       }, status: :unprocessable_entity
     end
   end
   
   def destroy
     if @client.destroy
-      render json: { "status": "success"}, status: 202
+      render json: { status: "success"}, status: 202
     else
-      render json: { "status": "error"}
+      render json: { status: "error"}
     end
   end
 
@@ -61,12 +61,12 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          data: @user
+          message: @user
         }
       else
         render json:{
           status: "error",
-          data: @user.errors
+          message: @user.errors
         }
       end
   end
@@ -78,12 +78,12 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          data: @user
+          message: @user
         }
       else
         render json:{
           status: "error",
-          data: @user.errors
+          message: @user.errors
         }
       end
     else
@@ -94,12 +94,12 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          data: @user
+          message: @user
         }, status: :created
       else
         render json:{
           status: "error",
-          data: @user.errors
+          message: @user.errors
         },status: :unprocessable_entity
       end
     end

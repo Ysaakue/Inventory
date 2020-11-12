@@ -94,13 +94,13 @@ class CountsController < ApplicationController
     @count.user = current_user
     if @count.save
       render json:{
-        "status": "success",
-        "data": @count
+        status: "success",
+        message: @count
       }, status: :created
     else
       render json:{
-        "status": "error",
-        "data": @count.errors
+        status: "error",
+        message: @count.errors
       }, status: :unprocessable_entity
     end
   end
@@ -108,22 +108,22 @@ class CountsController < ApplicationController
   def update
     if @count.update(count_params)
       render json:{
-        "status": "success",
-        "data": @count
+        status: "success",
+        message: @count
       }
     else
       render json:{
-        "status": "error",
-        "data": @count.errors
+        status: "error",
+        message: @count.errors
       }
     end
   end
   
   def destroy
     if @count.destroy
-      render json:{"status": "success"}, status: 202
+      render json:{status: "success"}, status: 202
     else
-      render json:{"status": "error"}
+      render json:{status: "error"}
     end
   end
 
@@ -132,27 +132,27 @@ class CountsController < ApplicationController
     if !cp.present?
       render json:{
         status: "error",
-        data: "O produto não foi encontrado para essa contagem, verifique os dados e tente novamente."
+        message: "O produto não foi encontrado para essa contagem, verifique os dados e tente novamente."
       }
     elsif cp.count.completed?
       render json:{
         status: "error",
-        data: "A contagem já foi encerrada."
+        message: "A contagem já foi encerrada."
       }
     elsif cp.count.fourth_count_pending?
       render json:{
         status: "error",
-        data: "A quarta etapa da contagem precisa ser liberada por um administrador."
+        message: "A quarta etapa da contagem precisa ser liberada por um administrador."
       }
     elsif cp.count.calculating?
       render json:{
         status: "error",
-        data: "Acontagem está sendo processada, tente novamente."
+        message: "Acontagem está sendo processada, tente novamente."
       }
     elsif cp.combined_count?
       render json:{
         status: "error",
-        data: "Não há divergências na contagem desse produto."
+        message: "Não há divergências na contagem desse produto."
       }
     else
       if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
@@ -160,7 +160,7 @@ class CountsController < ApplicationController
         if ce.products["products"].index(params[:count][:product_id].to_i) == nil
           render json:{
             status: "error",
-            data: "Esse produto foi designado a outro auditor."
+            message: "Esse produto foi designado a outro auditor."
           }
           return
         end
@@ -171,7 +171,7 @@ class CountsController < ApplicationController
         if cp.results.order(:order)[0].employee_id == params[:count][:employee_id]
           render json: {
             status: "error",
-            data: "Funcionário já realizou uma contagem desse produto."
+            message: "Funcionário já realizou uma contagem desse produto."
           }
           return
         end
@@ -182,7 +182,7 @@ class CountsController < ApplicationController
         if cp.count.fourth_count_employee != params[:count][:employee_id]
           render json:{
             status: "error",
-            data: "Outro funcionário foi designado para a quarta etapa da contagem."
+            message: "Outro funcionário foi designado para a quarta etapa da contagem."
           }
           return
         end
@@ -204,7 +204,7 @@ class CountsController < ApplicationController
               cp.product.location["locations"].include?(params[:count][:location])
             render json:{
               status: "error",
-              data: "Produto já contado nessa etapa."
+              message: "Produto já contado nessa etapa."
             }
             return
           end
@@ -215,7 +215,7 @@ class CountsController < ApplicationController
               cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
             render json:{
               status: "error",
-              data: "Produto já contado nessa etapa."
+              message: "Produto já contado nessa etapa."
             }
             return
           end
@@ -228,7 +228,7 @@ class CountsController < ApplicationController
       update_product_location(cp)
       render json:{
         status: "success",
-        data: result
+        message: result
       }
     end
   end
@@ -245,14 +245,14 @@ class CountsController < ApplicationController
     end
     if @count.save(validate: false)
       render json:{
-        "status": "success",
-        "data": @count
+        status: "success",
+        message: @count
       }
       @count.generate_fourth_results
     else
       render json:{
-        "status": "error",
-        "data": @count.errors
+        status: "error",
+        message: @count.errors
       }
     end
   end
@@ -263,14 +263,14 @@ class CountsController < ApplicationController
     @count.fourth_count_employee = params[:employee_id]
     if @count.save(validate: false)
       render json:{
-        "status": "success",
-        "data": @count
+        status: "success",
+        message: @count
       }
       @count.question_result(params[:products_ids])
     else
       render json:{
-        "status": "error",
-        "data": @count.errors
+        status: "error",
+        message: @count.errors
       }
     end
   end
@@ -284,8 +284,8 @@ class CountsController < ApplicationController
   def report_save
     @count.generate_report(params[:file_format])
     render json: {
-      "status": "success",
-      "data": "O arquivo está sendo gerado."
+      status: "success",
+      message: "O arquivo está sendo gerado."
     }
   end
   
@@ -346,13 +346,13 @@ class CountsController < ApplicationController
       @count.delay.calculate_final_value
       @count.verify_count
       render json:{
-        "status": "success",
-        "data": @cp.as_json
+        status: "success",
+        message: @cp.as_json
       }
     else
       render json:{
-        "status": "errors",
-        "data": @cp.errors
+        status: "errors",
+        message: @cp.errors
       }
     end
   end
@@ -360,7 +360,7 @@ class CountsController < ApplicationController
   def divide_products
     @count.divide_products_lists
     render json:{
-      "status": "success"
+      status: "success"
     }
   end
 
