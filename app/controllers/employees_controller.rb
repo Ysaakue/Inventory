@@ -17,7 +17,7 @@ class EmployeesController < ApplicationController
     if @employee.save
       render json:{
         status: "success",
-        message: @employee
+        data: @employee
       }, status: :created
     else
       render json:{
@@ -31,7 +31,7 @@ class EmployeesController < ApplicationController
     if @employee.update(employee_params)
       render json:{
         status: "success",
-        message: @employee
+        data: @employee
       }
     else
       render json:{
@@ -54,7 +54,7 @@ class EmployeesController < ApplicationController
     if @employee.present?
       render json: {
         status: "success",
-        message: @employee
+        data: @employee
       }
     else
       render json: {

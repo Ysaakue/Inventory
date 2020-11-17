@@ -23,7 +23,7 @@ class ClientsController < ApplicationController
     if @client.save
       render json:{
         status: "success",
-        message: @client
+        data: @client
       }, status: :created
     else
       render json:{
@@ -37,7 +37,7 @@ class ClientsController < ApplicationController
     if @client.update(client_params)
       render json:{
         status: "success",
-        message: @client
+        data: @client
       }
     else
       render json:{
@@ -61,7 +61,7 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          message: @user
+          data: @user
         }
       else
         render json:{
@@ -78,7 +78,7 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          message: @user
+          data: @user
         }
       else
         render json:{
@@ -94,7 +94,7 @@ class ClientsController < ApplicationController
       if @user.save
         render json:{
           status: "success",
-          message: @user
+          data: @user
         }, status: :created
       else
         render json:{

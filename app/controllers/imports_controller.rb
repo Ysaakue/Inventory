@@ -20,7 +20,7 @@ class ImportsController < ApplicationController
     if @import.save
       render json:{
         status: "success",
-        message: @import
+        data: @import
       }, status: :created
     else
       render json: {

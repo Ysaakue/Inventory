@@ -95,7 +95,7 @@ class CountsController < ApplicationController
     if @count.save
       render json:{
         status: "success",
-        message: @count
+        data: @count
       }, status: :created
     else
       render json:{
@@ -109,7 +109,7 @@ class CountsController < ApplicationController
     if @count.update(count_params)
       render json:{
         status: "success",
-        message: @count
+        data: @count
       }
     else
       render json:{
@@ -228,7 +228,7 @@ class CountsController < ApplicationController
       update_product_location(cp)
       render json:{
         status: "success",
-        message: result
+        data: result
       }
     end
   end
@@ -246,7 +246,7 @@ class CountsController < ApplicationController
     if @count.save(validate: false)
       render json:{
         status: "success",
-        message: @count
+        data: @count
       }
       @count.generate_fourth_results
     else
@@ -264,7 +264,7 @@ class CountsController < ApplicationController
     if @count.save(validate: false)
       render json:{
         status: "success",
-        message: @count
+        data: @count
       }
       @count.question_result(params[:products_ids])
     else
@@ -285,7 +285,7 @@ class CountsController < ApplicationController
     @count.generate_report(params[:file_format])
     render json: {
       status: "success",
-      message: "O arquivo está sendo gerado."
+      data: "O arquivo está sendo gerado."
     }
   end
   
@@ -347,7 +347,7 @@ class CountsController < ApplicationController
       @count.verify_count
       render json:{
         status: "success",
-        message: @cp.as_json
+        data: @cp.as_json
       }
     else
       render json:{

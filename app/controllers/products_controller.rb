@@ -27,7 +27,7 @@ class ProductsController < ApplicationController
     if @product.save
       render json:{
         status: "success",
-        message: @product
+        data: @product
       }, status: :created
     else
       render json:{
@@ -41,7 +41,7 @@ class ProductsController < ApplicationController
     if @product.update(product_params)
       render json:{
         status: "success",
-        message: @product
+        data: @product
       }
     else
       render json:{
