@@ -3,6 +3,9 @@ Rails.application.routes.draw do
     sessions: 'overrides/sessions'
   }
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+  
+  get "dashboard", to: "application#dashboard"
+  
   get "states/:state_id/cities", to: "cities#index"
   resources :clients, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]

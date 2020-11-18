@@ -4,6 +4,8 @@ class Employee < ApplicationRecord
   has_many :results
   belongs_to :user
 
+  scope :ranking, -> {  }
+
   validates :name, presence: { message: "Nome não pode ficar em branco" }
   validates :cpf, uniqueness: { message: "Já existe um operador com esse CPF" }
   validates :cpf, presence: { message: "CPF não pode ficar em branco" }

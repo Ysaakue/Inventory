@@ -9,4 +9,12 @@ class ApplicationController < ActionController::API
       "message": @error_message
     }, status: 401
   end
+
+  def dashboard
+    @employees = Employee.all
+    @counts = Count.where(date: >= DateTime.now.years_ago(1)).order(:date)
+    render json:{
+      ok: "ok"
+    }
+  end
 end
