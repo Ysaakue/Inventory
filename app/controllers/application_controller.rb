@@ -12,7 +12,7 @@ class ApplicationController < ActionController::API
 
   def dashboard
     @employees = Employee.all
-    @counts = Count.where(date: >= DateTime.now.years_ago(1)).order(:date)
+    @counts = Count.where('date >= ?', DateTime.now.years_ago(1)).order(:date)
     render json:{
       ok: "ok"
     }

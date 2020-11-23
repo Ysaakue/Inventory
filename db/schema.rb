@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_10_15_182507) do
+ActiveRecord::Schema.define(version: 2020_11_22_222435) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -149,6 +149,8 @@ ActiveRecord::Schema.define(version: 2020_10_15_182507) do
     t.string "unit_measurement", default: "UN"
     t.boolean "active", default: true
     t.boolean "new", default: true
+    t.integer "input"
+    t.integer "output"
   end
 
   create_table "reports", force: :cascade do |t|
