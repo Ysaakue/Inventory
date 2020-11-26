@@ -21,8 +21,14 @@ class Count < ApplicationRecord
     :calculating            #6
   ]
 
+  enum filter: [
+    :random,                #0
+    :value,                 #1
+    :turnover               #2
+  ]
+
   def date_not_retrograde
-    if date < Date.today
+    if date == nil || date < Date.today
       errors.add(:date, "A data não pode ser retrograda")
     end
   end
@@ -52,19 +58,28 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
-    self.status = "calculating"
-    self.save(validate: false)
-    temp_products = self.client.products.where(active: true)
-    if self.products_quantity_to_count < temp_products.size
-      temp_products = temp_products.shuffle
-      temp_products = temp_products[0..products_quantity_to_count-1]
+    status = "calculating"
+    save(validate: false)
+    temp_products = client.products.where(active: true)
+    if products_quantity_to_count < temp_products.size
+      if value?
+        temp_products =  temp_products.where('value >= ?' self.minimum_value)
+                                      .order(value: :desc)
+                                      .limit(products_quantity_to_count)
+      elsif turnover?
+        temp_products =  temp_products.select('*,(products.output*100/products.input) as giro')
+                                      .where('products.input is not null').order('giro desc')
+                                      .limit(products_quantity_to_count)
+      else
+        temp_products = temp_products.shuffle[0..products_quantity_to_count-1]
+      end
     end
     initial_value = 0
     temp_products.each do |product|
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
-        count_id: self.id,
+        count_id: id,
         combined_count: false,
         total_value: total_value
       )
@@ -75,9 +90,10 @@ class Count < ApplicationRecord
         order: 1,
       ).save(validate: false)
     end
-    self.initial_value = initial_value
-    self.status = "first_count"
-    self.save(validate: false)
+    initial_value = initial_value
+    status = "first_count"
+    byebug
+    save(validate: false)
   end
 
   def verify_count
