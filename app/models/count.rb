@@ -76,7 +76,7 @@ class Count < ApplicationRecord
     temp_products = client.products.where(active: true)
     if products_quantity_to_count < temp_products.size
       if value?
-        temp_products =  temp_products.where('value >= ?' self.minimum_value)
+        temp_products =  temp_products.where('value >= ?', self.minimum_value)
                                       .order(value: :desc)
                                       .limit(products_quantity_to_count)
       elsif turnover?
