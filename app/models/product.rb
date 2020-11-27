@@ -49,4 +49,21 @@ class Product < ApplicationRecord
     sql = "update products as p set location = '{}' where p.client_id = #{client_id}"
     result = ActiveRecord::Base.connection.exec_query(sql)
   end
+
+  def process_locations(streets,stands,shelfs,pallets)
+    self.location = {
+      id: 0,
+      locations: []
+    }
+    Range.new(0,[streets.size,stands.size,shelfs.size].min - 1).each do |index|
+      self.location["locations"] << {
+        "street": streets[index],
+        "stand": stands[index],
+        "shelf": shelfs[index]
+      }
+    end
+    pallets.each do |pallet|
+      self.location["locations"] << pallet
+    end
+  end
 end

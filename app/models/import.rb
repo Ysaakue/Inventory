@@ -31,6 +31,10 @@ class Import < ApplicationRecord
         else
           product_created.active = true
         end
+        product_created.process_locations(product["streets"],
+                                          product["stands"],
+                                          product["shelfs"],
+                                          product["pallets"])
         if product_created.save
           edited+=1
         end
@@ -45,7 +49,10 @@ class Import < ApplicationRecord
           input: product["input"],
           output: product["output"]
         )
-        new_product.location = {}
+        new_product.process_locations(product["streets"],
+                                      product["stands"],
+                                      product["shelfs"],
+                                      product["pallets"])
         if new_product.current_stock == nil
           new_product.current_stock = 0
         end
