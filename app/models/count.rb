@@ -76,7 +76,7 @@ class Count < ApplicationRecord
     temp_products = client.products.where(active: true)
     if products_quantity_to_count < temp_products.size
       if value?
-        temp_products =  temp_products.where('value >= ?' self.minimum_value)
+        temp_products =  temp_products.where('value >= ?', self.minimum_value)
                                       .order(value: :desc)
                                       .limit(products_quantity_to_count)
       elsif turnover?
@@ -277,7 +277,7 @@ class Count < ApplicationRecord
         row << pallets.join(',') #PALLETS
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
         row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
-        row << (cp.ignore?? cp.justification : '') #JUSTIFICATIVA
+        row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
     end

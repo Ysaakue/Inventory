@@ -20,42 +20,39 @@ class Import < ApplicationRecord
       total+=1
       product_created = self.client.products.find_by(code: product["code"])
       if product_created.present?
-        product_created.description = product["description"]
-        product_created.current_stock = product["current_stock"]
+        product_created.description = (product["description"] != nil)? product["description"] : ""
+        product_created.current_stock = (product["current_stock"] != nil)? product["current_stock"] : 0
         product_created.value = product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f
-        product_created.unit_measurement = product["unit_measurement"]
-        product_created.input = product["input"]
-        product_created.output = product["output"]
+        product_created.unit_measurement = (product["unit_measurement"] != nil)? product["unit_measurement"] : ""
+        product_created.input = (product["input"] != nil)? product["input"] : 0
+        product_created.output = (product["output"] != nil)? product["output"] : 0
         if product_created.current_stock == 0
           product_created.active = false
         else
           product_created.active = true
         end
-        product_created.process_locations(product["streets"],
-                                          product["stands"],
-                                          product["shelfs"],
-                                          product["pallets"])
+        product_created.process_locations((product["streets"] != nil)? product["streets"] : [],
+                                          (product["stands"] != nil)? product["stands"] : [],
+                                          (product["shelfs"] != nil)? product["shelfs"] : [],
+                                          (product["pallets"] != nil)? product["pallets"] : [])
         if product_created.save
           edited+=1
         end
       else
         new_product = Product.new(
-          description: product["description"],
+          description: (product["description"] != nil)? product["description"] : "",
           code: product["code"],
-          current_stock: product["current_stock"],
+          current_stock: (product["current_stock"] != nil)? product["current_stock"] : 0,
           value: product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f,
-          unit_measurement: product["unit_measurement"],
+          unit_measurement: (product["unit_measurement"] != nil)? product["unit_measurement"] : "",
           client_id: self.client_id,
-          input: product["input"],
-          output: product["output"]
+          input: (product["input"] != nil)? product["input"] : 0,
+          output: (product["output"] != nil)? product["output"] : 0
         )
-        new_product.process_locations(product["streets"],
-                                      product["stands"],
-                                      product["shelfs"],
-                                      product["pallets"])
-        if new_product.current_stock == nil
-          new_product.current_stock = 0
-        end
+        new_product.process_locations((product["streets"] != nil)? product["streets"] : [],
+                                      (product["stands"] != nil)? product["stands"] : [],
+                                      (product["shelfs"] != nil)? product["shelfs"] : [],
+                                      (product["pallets"] != nil)? product["pallets"] : [])
         if new_product.current_stock == 0
           new_product.active = false
         end
