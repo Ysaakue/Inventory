@@ -4,10 +4,9 @@ class User < ActiveRecord::Base
   # Include default devise modules. Others available are: :confirmable, :lockable, :timeoutable and :omniauthable
   devise :database_authenticatable, :registerable,:recoverable, :rememberable, :trackable, :validatable
   include DeviseTokenAuth::Concerns::User
-  belongs_to :client, optional: true
   has_many :employees
 
-  validates :client,presence: true, if: :need_client_id?
+  
 
   def need_client_id?
     !admin == true
