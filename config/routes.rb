@@ -30,12 +30,14 @@ Rails.application.routes.draw do
   post    '/counts/:id/ignore_product',                 to: 'counts#ignore_product'
   post    '/counts/:id/divide_products',                to: 'counts#divide_products'
   post    '/counts/:id/verify_count',                   to: 'counts#verify_count'
+  post    '/counts/:id/set_nonconformity',              to: 'counts#set_nonconformity'
   put     '/submit_result',                             to: 'counts#submit_quantity_found'
   post    '/clients/:client_id/products/import',        to: 'imports#create'
   post    '/clients/:id/grant_access',                  to: 'clients#grant_access'
   post    '/clients/:id/suspend_access',                to: 'clients#suspend_access'
   post    '/products/set_not_new',                      to: 'products#set_not_new'
 
+  #duplicated routes, changing clients to companies
   post    '/companies/:client_id/products/import',      to: 'imports#create'
   post    '/companies/:id/grant_access',                to: 'clients#grant_access'
   post    '/companies/:id/suspend_access',              to: 'clients#suspend_access'

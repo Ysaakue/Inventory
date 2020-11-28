@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_23_121000) do
+ActiveRecord::Schema.define(version: 2020_11_28_012137) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -78,6 +78,7 @@ ActiveRecord::Schema.define(version: 2020_11_23_121000) do
     t.float "percentage_result_value", default: 0.0
     t.boolean "ignore", default: false
     t.string "justification"
+    t.string "nonconformity"
   end
 
   create_table "counts", force: :cascade do |t|

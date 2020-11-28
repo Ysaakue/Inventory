@@ -3,8 +3,9 @@ class CountsController < ApplicationController
   before_action :set_client, only: [:index_by_client]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products,:question_results,:ignore_product,:divide_products,:verify_count
+    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
+    :report_data,:pending_products,:question_results,:ignore_product,
+    :divide_products,:verify_count,:set_nonconformity
   ]
 
   def index
@@ -344,7 +345,9 @@ class CountsController < ApplicationController
       @cp.reset_results
       @count.delay.calculate_initial_value
       @count.delay.calculate_final_value
-      @count.verify_count
+      if !@count.first_count? && !@count.calculating?
+        @count.verify_count
+      end
       render json:{
         status: "success",
         data: @cp.as_json
@@ -376,6 +379,29 @@ class CountsController < ApplicationController
     render json:{
       status: "success"
     }
+  end
+
+  def set_nonconformity
+    @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
+    @cp.ignore = true
+    @cp.nonconformity = params["nonconformity"]
+    if @cp.save
+      @cp.reset_results
+      @count.delay.calculate_initial_value
+      @count.delay.calculate_final_value
+      if !@count.first_count? && !@count.calculating?
+        @count.verify_count
+      end
+      render json:{
+        status: "success",
+        data: @cp.as_json
+      }
+    else
+      render json:{
+        status: "errors",
+        message: @cp.errors
+      }
+    end
   end
 
   private

@@ -277,7 +277,7 @@ class Count < ApplicationRecord
         row << pallets.join(',') #PALLETS
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
         row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
-        row << (cp.ignore?? cp.justification : '') #JUSTIFICATIVA
+        row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
     end

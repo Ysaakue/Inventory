@@ -41,6 +41,7 @@ class CountProduct < ApplicationRecord
         product_value: product.value,
         ignore: ignore,
         justification: justification,
+        nonconformity: nonconformity,
         total_value: total_value,
         percentage_result: percentage_result,
         final_total_value: final_total_value,
