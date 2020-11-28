@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_28_012137) do
+ActiveRecord::Schema.define(version: 2020_11_28_174812) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -154,6 +154,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_012137) do
     t.boolean "new", default: true
     t.integer "input"
     t.integer "output"
+    t.index ["code", "client_id"], name: "index_products_on_code_and_client_id", unique: true
   end
 
   create_table "reports", force: :cascade do |t|
