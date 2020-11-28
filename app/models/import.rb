@@ -4,6 +4,7 @@ class Import < ApplicationRecord
 
   def process
     self.description = "Processando produtos."
+    self.invalid_products = []
     self.save(validate: false)
     total = 0
     created = 0
@@ -37,6 +38,9 @@ class Import < ApplicationRecord
                                           (product["pallets"] != nil)? product["pallets"] : [])
         if product_created.save
           edited+=1
+        else
+          product["errors"] = product_created.errors
+          self.invalid_products << product
         end
       else
         new_product = Product.new(
@@ -58,6 +62,9 @@ class Import < ApplicationRecord
         end
         if new_product.save
           created+=1
+        else
+          product["errors"] = new_product.errors
+          self.invalid_products << product
         end
       end
     end
