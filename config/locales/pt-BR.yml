@@ -2,7 +2,7 @@
 pt-BR:
   unauthorized:
     manage:
-      all: "Token de login expirado. Faça login novamente"
+      all: "Você não tem autorização para acessar essa página."
   activerecord:
     errors:
       messages:
