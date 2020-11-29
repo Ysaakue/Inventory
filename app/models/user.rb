@@ -1,27 +1,32 @@
 # frozen_string_literal: true
 
 class User < ActiveRecord::Base
-  # Include default devise modules. Others available are: :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :database_authenticatable, :registerable,:recoverable, :rememberable, :trackable, :validatable
+  # Include default devise modules.
+  #Others available are: :confirmable,:lockable,:timeoutable,:omniauthable
+  devise  :database_authenticatable,:registerable,:recoverable,:rememberable,
+          :trackable,:validatable
   include DeviseTokenAuth::Concerns::User
+  
   has_many :employees
 
-  
-
-  def need_client_id?
-    !admin == true
-  end
+  enum role: [
+    :inventory1,  #plan 1
+    :inventory2,  #plan 2
+    :inventory3,  #plan 3
+    :custom,      #custom plan
+    :dependent,   #aditional account to a plan
+    :master       #NT account
+  ]
 
   def as_json options={}
-  {
-    id: id,
-    email: email,
-    admin: admin,
-    client_id: client_id,
-    client_fantasy_name: (client.present?? client.fantasy_name : nil),
-    uid: uid,
-    allow_password_change: allow_password_change,
-    first_access: (sign_in_count == 0)
-  }
+    {
+      id: id,
+      name: name,
+      email: email,
+      role: role,
+      uid: uid,
+      allow_password_change: allow_password_change,
+      first_access: (sign_in_count == 0)
+    }
   end
 end

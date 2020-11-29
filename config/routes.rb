@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       get   ':employee_id/counts',                      to: 'counts#index_by_employee'
     end
   end
+  resources :users, except: [:new,:edit]
   get     '/counts',                                    to: 'counts#index'
   get     '/counts/:id/save_report',                    to: 'counts#report_save'
   get     '/counts/:id/pending_products/:employee_id',  to: 'counts#pending_products'
