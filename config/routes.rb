@@ -8,11 +8,11 @@ Rails.application.routes.draw do
   get "dashboard", to: "application#dashboard"
   
   get "states/:state_id/cities", to: "cities#index"
-  resources :clients, except: [:new,:edit] do 
+  resources :companies, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
     resources :counts, except: [:index,:new,:edit]
     resources :imports, only: [:index,:show]
-    get '/counts', to: 'counts#index_by_client'
+    get '/counts', to: 'counts#index_by_company'
   end
   resources :employees, except: [:new,:edit] do
     collection do
@@ -34,32 +34,6 @@ Rails.application.routes.draw do
   post    '/counts/:id/verify_count',                   to: 'counts#verify_count'
   post    '/counts/:id/set_nonconformity',              to: 'counts#set_nonconformity'
   put     '/submit_result',                             to: 'counts#submit_quantity_found'
-  post    '/clients/:client_id/products/import',        to: 'imports#create'
-  # post    '/clients/:id/grant_access',                  to: 'clients#grant_access'
-  # post    '/clients/:id/suspend_access',                to: 'clients#suspend_access'
+  post    '/companies/:company_id/products/import',        to: 'imports#create'
   post    '/products/set_not_new',                      to: 'products#set_not_new'
-
-  #duplicated routes, changing clients to companies
-  post    '/companies/:client_id/products/import',      to: 'imports#create'
-  # post    '/companies/:id/grant_access',                to: 'clients#grant_access'
-  # post    '/companies/:id/suspend_access',              to: 'clients#suspend_access'
-  get     '/companies',                                 to: 'clients#index'
-  get     '/companies/:id',                             to: 'clients#show'
-  post    '/companies/:id',                             to: 'clients#create'
-  put     '/companies/:id',                             to: 'clients#update'
-  delete  '/companies/:id',                             to: 'clients#create'
-  get     '/companies/:client_id/products',             to: 'products#index'
-  get     '/companies/:client_id/products/:id',         to: 'products#show'
-  post    '/companies/:client_id/products/:id',         to: 'products#create'
-  put     '/companies/:client_id/products/:id',         to: 'products#update'
-  delete  '/companies/:client_id/products/:id',         to: 'products#create'
-  get     '/companies/:client_id/counts',               to: 'counts#index'
-  get     '/companies/:client_id/counts/:id',           to: 'counts#show'
-  post    '/companies/:client_id/counts/:id',           to: 'counts#create'
-  put     '/companies/:client_id/counts/:id',           to: 'counts#update'
-  delete  '/companies/:client_id/counts/:id',           to: 'counts#create'
-  get     '/companies/:client_id/imports',              to: 'imports#index'
-  get     '/companies/:client_id/imports/:id',          to: 'imports#show'
-  post    '/companies/:client_id/imports/:id',          to: 'imports#create'
-  get     '/companies/:client_id/counts',               to: 'counts#index_by_client'
 end

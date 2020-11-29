@@ -1,12 +1,12 @@
-class Client < ApplicationRecord
+class Company < ApplicationRecord
   has_many :products
   has_many :counts
   has_many :imports
   belongs_to :city
   belongs_to :state
 
-  validates :cnpj, uniqueness: { message: "Já existe um cliente com esse CNPJ" }
-  validates :email, uniqueness: { message: "Já existe um cliente com esse email" }
+  validates :cnpj, uniqueness: { message: "Já existe uma empresa com esse CNPJ" }
+  validates :email, uniqueness: { message: "Já existe uma empresa com esse email" }
 
   def as_json option={}
     {

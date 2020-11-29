@@ -1,5 +1,5 @@
 class Product < ApplicationRecord
-  belongs_to :client
+  belongs_to :company
   has_many :counts_products, class_name: "CountProduct"
 
   def as_json options={}
@@ -34,7 +34,7 @@ class Product < ApplicationRecord
         value: value,
         active: active,
         new: new,
-        client: client.fantasy_name,
+        company: company.fantasy_name,
         location: location
       }
     end
@@ -45,8 +45,8 @@ class Product < ApplicationRecord
     result = ActiveRecord::Base.connection.exec_query(sql)
   end
 
-  def self.clear_location(client_id)
-    sql = "update products as p set location = '{}' where p.client_id = #{client_id}"
+  def self.clear_location(company_id)
+    sql = "update products as p set location = '{}' where p.company_id = #{company_id}"
     result = ActiveRecord::Base.connection.exec_query(sql)
   end
 

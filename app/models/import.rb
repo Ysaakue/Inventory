@@ -1,5 +1,5 @@
 class Import < ApplicationRecord
-  belongs_to :client
+  belongs_to :company
   after_create :process
 
   def process
@@ -10,7 +10,7 @@ class Import < ApplicationRecord
     created = 0
     edited = 0
     disabled = 0
-    self.client.products.each do |product|
+    self.company.products.each do |product|
       if self.products.select { |product_inside| product_inside["code"] == product.code }.first.blank?
         product.active = false
         product.save!
@@ -19,7 +19,7 @@ class Import < ApplicationRecord
     end
     self.products.each do |product|
       total+=1
-      product_created = self.client.products.find_by(code: product["code"])
+      product_created = self.company.products.find_by(code: product["code"])
       if product_created.present?
         product_created.description = (product["description"] != nil)? product["description"] : ""
         product_created.current_stock = (product["current_stock"] != nil)? product["current_stock"] : 0
@@ -49,7 +49,7 @@ class Import < ApplicationRecord
           current_stock: (product["current_stock"] != nil)? product["current_stock"] : 0,
           value: product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f,
           unit_measurement: (product["unit_measurement"] != nil)? product["unit_measurement"] : "",
-          client_id: self.client_id,
+          company_id: self.company_id,
           input: (product["input"] != nil)? product["input"] : 0,
           output: (product["output"] != nil)? product["output"] : 0
         )

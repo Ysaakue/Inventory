@@ -17,11 +17,11 @@ class Ability
         can :manage, :all
       else
         can :read, :all
-        can :manage, Client, user_id: user.id
+        can :manage, Company, user_id: user.id
         can :manage, Employee, user_id: user.id
         can :manage, Count, user_id: user.id
-        can :manage, Import, client: { user_id: user.id }
-        can :manage, Product, client: { user_id: user.id }
+        can :manage, Import, company: { user_id: user.id }
+        can :manage, Product, company: { user_id: user.id }
         can :manage, User, id: user.id
       end
     end

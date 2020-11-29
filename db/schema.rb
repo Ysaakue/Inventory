@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_28_224007) do
+ActiveRecord::Schema.define(version: 2020_11_29_153102) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -43,7 +43,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "clients", force: :cascade do |t|
+  create_table "companies", force: :cascade do |t|
     t.string "cnpj"
     t.string "company_name"
     t.string "fantasy_name"
@@ -63,7 +63,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.json "dimensions"
-    t.index ["cnpj"], name: "index_clients_on_cnpj", unique: true
+    t.index ["cnpj"], name: "index_companies_on_cnpj", unique: true
   end
 
   create_table "count_products", force: :cascade do |t|
@@ -84,7 +84,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
   create_table "counts", force: :cascade do |t|
     t.date "date"
     t.integer "status", default: 0
-    t.integer "client_id"
+    t.integer "company_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "fourth_count_released", default: false
@@ -133,7 +133,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
   end
 
   create_table "imports", force: :cascade do |t|
-    t.integer "client_id"
+    t.integer "company_id"
     t.json "products"
     t.string "description"
     t.datetime "created_at", precision: 6, null: false
@@ -147,7 +147,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
     t.integer "current_stock"
     t.float "value"
     t.json "location"
-    t.integer "client_id"
+    t.integer "company_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "unit_measurement", default: "UN"
@@ -155,7 +155,7 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
     t.boolean "new", default: true
     t.integer "input"
     t.integer "output"
-    t.index ["code", "client_id"], name: "index_products_on_code_and_client_id", unique: true
+    t.index ["code", "company_id"], name: "index_products_on_code_and_company_id", unique: true
   end
 
   create_table "reports", force: :cascade do |t|
@@ -211,15 +211,15 @@ ActiveRecord::Schema.define(version: 2020_11_28_224007) do
   end
 
   add_foreign_key "cities", "states", on_delete: :cascade
-  add_foreign_key "clients", "cities"
-  add_foreign_key "clients", "states"
+  add_foreign_key "companies", "cities"
+  add_foreign_key "companies", "states"
   add_foreign_key "count_products", "counts", on_delete: :cascade
   add_foreign_key "count_products", "products", on_delete: :cascade
-  add_foreign_key "counts", "clients", on_delete: :cascade
+  add_foreign_key "counts", "companies", on_delete: :cascade
   add_foreign_key "counts_employees", "counts", on_delete: :cascade
   add_foreign_key "counts_employees", "employees", on_delete: :cascade
-  add_foreign_key "imports", "clients", on_delete: :cascade
-  add_foreign_key "products", "clients", on_delete: :cascade
+  add_foreign_key "imports", "companies", on_delete: :cascade
+  add_foreign_key "products", "companies", on_delete: :cascade
   add_foreign_key "reports", "counts", on_delete: :cascade
   add_foreign_key "results", "count_products", on_delete: :cascade
   add_foreign_key "results", "employees"

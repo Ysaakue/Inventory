@@ -1,5 +1,5 @@
 class Count < ApplicationRecord
-  belongs_to :client
+  belongs_to :company
   belongs_to :user
   has_many :counts_employees, class_name: "CountEmployee"
   has_many :employees, through: :counts_employees
@@ -47,13 +47,13 @@ class Count < ApplicationRecord
         id: id,
         date: date,
         status: status,
-        client: client.fantasy_name
+        company: company.fantasy_name
       }
     elsif dashboard
       {
         id: id,
         date: date,
-        client: client.fantasy_name,
+        company: company.fantasy_name,
         accuracy: accuracy,
         products_quantity: products.count
       }
@@ -63,7 +63,7 @@ class Count < ApplicationRecord
         date: date,
         goal: goal,
         status: status,
-        client: client.fantasy_name,
+        company: company.fantasy_name,
         employees: employees,
         products: counts_products
       }
@@ -73,7 +73,7 @@ class Count < ApplicationRecord
   def prepare_count
     status = "calculating"
     save(validate: false)
-    temp_products = client.products.where(active: true)
+    temp_products = company.products.where(active: true)
     if products_quantity_to_count < temp_products.size
       if value?
         temp_products =  temp_products.where('value >= ?', self.minimum_value)
@@ -243,7 +243,7 @@ class Count < ApplicationRecord
 
       count.counts_products.each do |cp|
         row = []
-        row << count.client.fantasy_name #EMPRESA
+        row << count.company.fantasy_name #EMPRESA
         row << cp.product.code #COD
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
@@ -335,7 +335,7 @@ class Count < ApplicationRecord
       @report.count_id = self.id
     end
     if @report.present? && !@report.generating?
-      @report.filename = "relatorio_contagem_#{(!(self.client.fantasy_name.include? " ") == false)? (self.client.fantasy_name.gsub! " ", "_") : (self.client.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
+      @report.filename = "relatorio_contagem_#{(!(self.company.fantasy_name.include? " ") == false)? (self.company.fantasy_name.gsub! " ", "_") : (self.company.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
       @report.content_type = content_type
       @report.generating!
       

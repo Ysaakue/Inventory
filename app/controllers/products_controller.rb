@@ -1,12 +1,12 @@
 class ProductsController < ApplicationController
   load_and_authorize_resource
   before_action :set_product, only: [:show,:update,:destroy]
-  before_action :set_client, only: [:index]
+  before_action :set_company, only: [:index]
   
   def index
-    @products = @client.products.where(active: true)
+    @products = @company.products.where(active: true)
     if !request.query_parameters.blank? && !request.query_parameters["active"].blank? && !request.query_parameters["active"]
-      @products = @client.products
+      @products = @company.products
     end
     if !request.query_parameters.blank? && !request.query_parameters["new"].blank? && request.query_parameters["active"]
       @products = @products.where(new: true)
@@ -23,7 +23,7 @@ class ProductsController < ApplicationController
     if @product.location == nil
       @product.location = {}
     end
-    @product.client_id = params[:client_id]
+    @product.company_id = params[:company_id]
     if @product.save
       render json:{
         status: "success",
@@ -76,7 +76,7 @@ class ProductsController < ApplicationController
     @product = Product.find(params[:id])
   end
 
-  def set_client
-    @client = Client.find(params[:client_id])
+  def set_company
+    @company = Company.find(params[:company_id])
   end
 end

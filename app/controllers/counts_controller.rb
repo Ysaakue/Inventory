@@ -1,6 +1,6 @@
 class CountsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_client, only: [:index_by_client]
+  before_action :set_company, only: [:index_by_company]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
@@ -9,12 +9,12 @@ class CountsController < ApplicationController
   ]
 
   def index
-    @counts = Count.where('user_id = ? or client_id = ?',current_user.id,(!current_user.client.blank?? current_user.client.id : 0)).order(date: :desc,id: :desc)
+    @counts = Count.all #where('user_id = ? or client_id = ?',current_user.id,(!current_user.client.blank?? current_user.client.id : 0)).order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
-  def index_by_client
-    @counts = @client.counts.order(date: :desc,id: :desc)
+  def index_by_company
+    @counts = @company.counts.order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
@@ -70,7 +70,7 @@ class CountsController < ApplicationController
         goal: @count.goal,
         status: @count.status,
         report_csv_status: (file.present?? file.status : "nonexistent"),
-        client: @count.client.fantasy_name,
+        company: @count.company.fantasy_name,
         initial_value: @count.initial_value,
         final_value: @count.final_value,
         accuracy: @count.accuracy,
@@ -85,12 +85,12 @@ class CountsController < ApplicationController
   
   def create
     @count = Count.new(count_params)
-    @count.client_id = params[:client_id]
+    @count.company_id = params[:company_id]
     if @count.products_quantity_to_count == nil
-      @count.products_quantity_to_count = @count.client.products.where(active: true).size
+      @count.products_quantity_to_count = @count.company.products.where(active: true).size
     end
     if !params[:count][:clear_locations].blank? && params[:count][:clear_locations]
-      Product.clear_location(params[:client_id])
+      Product.clear_location(params[:company_id])
     end
     @count.user = current_user
     if @count.save
@@ -279,7 +279,7 @@ class CountsController < ApplicationController
   def report_pdf
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
     pdf = WickedPdf.new.pdf_from_string(pdf_html)
-    send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+    send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
   end
 
   def report_save
@@ -303,7 +303,7 @@ class CountsController < ApplicationController
       format.pdf do
         pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
         pdf = WickedPdf.new.pdf_from_string(pdf_html)
-        send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+        send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
       end
     end
   end
@@ -313,7 +313,7 @@ class CountsController < ApplicationController
       id: @count.id,
       date: @count.date,
       status: @count.status,
-      client: @count.client.fantasy_name,
+      company: @count.company.fantasy_name,
       products: @count.counts_products,
       employees: @count.employees_to_report
     }
@@ -407,7 +407,7 @@ class CountsController < ApplicationController
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:client_id,:products_quantity_to_count,:goal,
+      :date,:status,:company_id,:products_quantity_to_count,:goal,
       employee_ids: []
     )
   end
@@ -416,8 +416,8 @@ class CountsController < ApplicationController
     @count = Count.find(params[:id])
   end
 
-  def set_client
-    @client = Client.find(params[:client_id])
+  def set_company
+    @company = Company.find(params[:company_id])
   end
 
   def set_employee
