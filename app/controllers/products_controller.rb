@@ -67,8 +67,8 @@ class ProductsController < ApplicationController
   private
   def product_params
     params.require(:product).permit(
-      :description,:code,:current_stock,:value,:client_id,:unit_measurement,
-      location: [:street, :stand, :shelf]
+      :active,:description,:code,:current_stock,:value,:unit_measurement
+      # location: [:street, :stand, :shelf]
     )
   end
 
