@@ -89,6 +89,9 @@ class Count < ApplicationRecord
     end
     initial_value = 0
     temp_products.each do |product|
+      product.location.delete("step")
+      product.location.delete("counted_on_step")
+      product.save
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
