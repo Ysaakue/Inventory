@@ -368,7 +368,7 @@ class CountsController < ApplicationController
   end
 
   def products_simplified
-    products = @count.products
+    products = @count.products.where(combined_count: false)
     render json:{
       products: products.as_json(simple: true)
     }
