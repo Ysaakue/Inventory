@@ -27,6 +27,7 @@ class CountProduct < ApplicationRecord
     end
     if simple
       {
+        product_id: product.id,
         product_code: product.code,
         product_description: product.description,
         location_data: product.location,
