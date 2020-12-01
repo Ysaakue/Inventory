@@ -10,30 +10,35 @@ Rails.application.routes.draw do
   get "states/:state_id/cities", to: "cities#index"
   resources :companies, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
-    resources :counts, except: [:index,:new,:edit]
+    resources :counts, except: [:index,:show,:new,:edit]
     resources :imports, only: [:index,:show]
     get '/counts', to: 'counts#index_by_company'
   end
   resources :employees, except: [:new,:edit] do
     collection do
-      post  '/identify_employee',                       to: 'employees#identify_employee'
-      get   ':employee_id/counts',                      to: 'counts#index_by_employee'
+      post 'identify_employee',   to: 'employees#identify_employee'
+      get  ':employee_id/counts', to: 'counts#index_by_employee'
     end
   end
   resources :users, except: [:new,:edit]
-  get     '/counts',                                    to: 'counts#index'
-  get     '/counts/:id/save_report',                    to: 'counts#report_save'
-  get     '/counts/:id/pending_products/:employee_id',  to: 'counts#pending_products'
-  get     '/counts/:id/download_report(.:format)',      to: 'counts#report_download'
-  get     '/counts/:id/report_data',                    to: 'counts#report_data'
-  get     '/counts/:id/products',                       to:'counts#products_simplified'
-  post    '/counts/:id/question_results',               to: 'counts#question_results'
-  post    '/counts/:id/fourth_count_release',           to: 'counts#fourth_count_release'
-  post    '/counts/:id/ignore_product',                 to: 'counts#ignore_product'
-  post    '/counts/:id/divide_products',                to: 'counts#divide_products'
-  post    '/counts/:id/verify_count',                   to: 'counts#verify_count'
-  post    '/counts/:id/set_nonconformity',              to: 'counts#set_nonconformity'
-  put     '/submit_result',                             to: 'counts#submit_quantity_found'
-  post    '/companies/:company_id/products/import',        to: 'imports#create'
-  post    '/products/set_not_new',                      to: 'products#set_not_new'
+  resources :counts, only: [:index] do
+    collection do
+      get  ':id/count_dashboard',                     to: 'counts#dashboard'
+      get  ':id/count_dashboard_table',               to: 'counts#dashboard_table'
+      get  ':id/save_report',                   to: 'counts#report_save'
+      get  ':id/pending_products/:employee_id', to: 'counts#pending_products'
+      get  ':id/download_report(.:format)',     to: 'counts#report_download'
+      get  ':id/report_data',                   to: 'counts#report_data'
+      get  ':id/products',                      to:'counts#products_simplified'
+      post ':id/question_results',              to: 'counts#question_results'
+      post ':id/fourth_count_release',          to: 'counts#fourth_count_release'
+      post ':id/ignore_product',                to: 'counts#ignore_product'
+      post ':id/divide_products',               to: 'counts#divide_products'
+      post ':id/verify_count',                  to: 'counts#verify_count'
+      post ':id/set_nonconformity',             to: 'counts#set_nonconformity'
+    end
+  end
+  put  '/submit_result',                         to: 'counts#submit_quantity_found'
+  post '/companies/:company_id/products/import', to: 'imports#create'
+  post '/products/set_not_new',                  to: 'products#set_not_new'
 end

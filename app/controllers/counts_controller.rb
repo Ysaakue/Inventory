@@ -82,6 +82,73 @@ class CountsController < ApplicationController
       }
     }
   end
+
+  def dashboard
+    file = @count.reports.find_by(content_type: "csv")
+    status = Count.statuses[@count.status]
+    if status > 2 and status != 4
+      left_count = 0
+    else
+      if status != 4
+        status+=1
+      end
+      left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,status).size
+    end
+    render json: {
+      count: {
+        id: @count.id,
+        date: @count.date,
+        goal: @count.goal,
+        status: @count.status,
+        report_csv_status: (file.present?? file.status : "nonexistent"),
+        company: @count.company.fantasy_name,
+        initial_value: @count.initial_value,
+        final_value: @count.final_value,
+        accuracy: @count.accuracy,
+        already_counted: (@count.counts_products.where("ignore = false").size - left_count),
+        left_count: left_count,
+        quantity_ignored: @count.counts_products.where("ignore = true").size,
+        employees: @count.employees,
+      }
+    }
+  end
+
+  def dashboard_table
+    page = 0
+    quantity = 50
+    if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+      quantity = request.query_parameters["quant"].to_i
+    end
+    if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+      page = request.query_parameters["pag"].to_i - 1
+    end
+    max = @count.counts_products.size
+    if max % quantity > 0
+      total_pages = (max / quantity) + 1
+    else
+      total_pages = (max / quantity)
+    end
+    array_start = 0
+    array_end = max-1
+    if total_pages > 1 && page <= total_pages
+      array_start = page * quantity
+      if (array_start + quantity - 1) < (max-1)
+        array_end = array_start + quantity - 1
+      end
+    end
+
+    render json: {
+      current_page: page+1,
+      current_quantity_per_page: quantity,
+      total_quantity: max,
+      current_start: array_start,
+      current_end: array_end,
+      total_pages: total_pages,
+      count: {
+        products: @count.counts_products[array_start..array_end].as_json
+      }
+    }
+  end
   
   def create
     @count = Count.new(count_params)
