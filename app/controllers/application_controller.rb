@@ -26,7 +26,7 @@ class ApplicationController < ActionController::API
                   .group("employees.id")
                   .order("results desc,counts desc")
                   .limit(3)
-    @counts = Count.where("date >= ?", DateTime.now.years_ago(1)).order(:date)
+    @counts = Count.where("status = 5 and date >= ?", DateTime.now.years_ago(1)).order(:date)
     render json:{
       top_employees: @employees.as_json(index: true),
       counts: @counts.as_json(dashboard: true)
