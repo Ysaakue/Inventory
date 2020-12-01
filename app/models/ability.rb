@@ -5,7 +5,7 @@ class Ability
 
   def initialize(user)
     alias_action  :pending_products,:submit_quantity_found,:index_by_employee,
-                  :identify_employee, to: :mobile_app
+                  :identify_employee,:set_nonconformity,:ignore_product, to: :mobile_app
     can :mobile_app, :all
     alias_action :report_download, to: :dont_need_authentication
     can :dont_need_authentication, :all
