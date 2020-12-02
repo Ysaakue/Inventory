@@ -23,7 +23,11 @@ class Result < ApplicationRecord
               count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
             )
           )
-        if count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found
+        if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found ||
+            (
+              count_product.results.order(:order)[0].quantity_found == count_product.results.order(:order)[1].quantity_found &&
+              count_product.results.order(:order)[1].quantity_found != count_product.product.current_stock
+            )
           Result.new(
             count_product_id: count_product.id,
             order: 3,
@@ -49,7 +53,11 @@ class Result < ApplicationRecord
           )
       if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found &&
           count_product.results.order(:order)[2].quantity_found != count_product.results.order(:order)[1].quantity_found &&
-          count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found
+          count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found ||
+          (
+            count_product.results.order(:order)[1].quantity_found == count_product.results.order(:order)[2].quantity_found &&
+            count_product.results.order(:order)[2].quantity_found != count_product.product.current_stock
+          )
         Result.new(
           count_product_id: count_product.id,
           order: 4,

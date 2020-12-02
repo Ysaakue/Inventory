@@ -82,6 +82,73 @@ class CountsController < ApplicationController
       }
     }
   end
+
+  def dashboard
+    file = @count.reports.find_by(content_type: "csv")
+    status = Count.statuses[@count.status]
+    if status > 2 and status != 4
+      left_count = 0
+    else
+      if status != 4
+        status+=1
+      end
+      left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,status).size
+    end
+    render json: {
+      count: {
+        id: @count.id,
+        date: @count.date,
+        goal: @count.goal,
+        status: @count.status,
+        report_csv_status: (file.present?? file.status : "nonexistent"),
+        company: @count.company.fantasy_name,
+        initial_value: @count.initial_value,
+        final_value: @count.final_value,
+        accuracy: @count.accuracy,
+        already_counted: (@count.counts_products.where("ignore = false").size - left_count),
+        left_count: left_count,
+        quantity_ignored: @count.counts_products.where("ignore = true").size,
+        employees: @count.employees,
+      }
+    }
+  end
+
+  def dashboard_table
+    page = 0
+    quantity = 50
+    if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+      quantity = request.query_parameters["quant"].to_i
+    end
+    if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+      page = request.query_parameters["pag"].to_i - 1
+    end
+    max = @count.counts_products.size
+    if max % quantity > 0
+      total_pages = (max / quantity) + 1
+    else
+      total_pages = (max / quantity)
+    end
+    array_start = 0
+    array_end = max-1
+    if total_pages > 1 && page <= total_pages
+      array_start = page * quantity
+      if (array_start + quantity - 1) < (max-1)
+        array_end = array_start + quantity - 1
+      end
+    end
+
+    render json: {
+      current_page: page+1,
+      current_quantity_per_page: quantity,
+      total_quantity: max,
+      current_start: array_start,
+      current_end: array_end,
+      total_pages: total_pages,
+      count: {
+        products: @count.counts_products[array_start..array_end].as_json
+      }
+    }
+  end
   
   def create
     @count = Count.new(count_params)
@@ -368,7 +435,7 @@ class CountsController < ApplicationController
   end
 
   def products_simplified
-    products = @count.products
+    products = @count.products.where(combined_count: false)
     render json:{
       products: products.as_json(simple: true)
     }
@@ -402,6 +469,106 @@ class CountsController < ApplicationController
         message: @cp.errors
       }
     end
+  end
+
+  def merge_reports
+    cols = [
+      "DATA","EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+      "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+    ]
+    counts = Count.where('id in (?)',params[:ids])
+    merge = CSV.generate(headers: true) do |csv|
+      csv << cols
+      company_date = []
+      accuracy = []
+      initial_value = []
+      final_value =[]
+      average_accuracy = 0
+      counts.each do |count|
+        company_date << "#{count.company.fantasy_name} - #{count.date}"
+        accuracy << (('%.2f' % count.accuracy).gsub! '.',',')
+        average_accuracy += count.accuracy
+        initial_value << (('%.2f' % count.initial_value).gsub! '.',',')
+        final_value << (('%.2f' % count.final_value).gsub! '.',',')
+        row = []
+        row << count.date #DATA
+        count.counts_products.each do |cp|
+          row << count.company.fantasy_name #EMPRESA
+          row << cp.product.code #COD
+          row << cp.product.description #MATERIAL
+          row << cp.product.unit_measurement #UND
+          row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
+          row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
+          row << cp.product.current_stock #SALDO INICIAL
+          row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
+          row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
+          row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
+          row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+          row << ((cp.results.last.blank? || cp.results.last.quantity_found < 0)? '-' : cp.results.last.quantity_found) #SALDO FINAL
+          row << cp.percentage_result #RESULTADO %
+          streets = []
+          stands  = []
+          shelfs  = []
+          pallets  = []
+          if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+            cp.product.location["locations"].each do |location|
+              if location.keys.include? "pallet"
+                pallets << location["pallet"]
+              else
+                streets << location["street"]
+                stands  << location["stand"]
+                shelfs  << location["shelf"]
+              end
+            end
+          end
+          row << streets.join(',') #RUA
+          row << stands.join(',') #ESTANTE
+          row << shelfs.join(',') #PRATELEIRA
+          row << pallets.join(',') #PALLETS
+          row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
+          row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+          row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+          csv << row
+          row = [""]
+        end
+      end
+      row = []
+      csv << row
+      row << "Empresa/Data"
+      company_date.each do |cd|
+        row << cd
+      end
+      csv << row
+      row = []
+      row << "Valor Total"
+      initial_value.each do |iv|
+        row << iv
+      end
+      csv << row
+      row = []
+      row << "Valor Resultado"
+      final_value.each do |fv|
+        row << fv
+      end
+      csv << row
+      row = []
+      row << "Acuracidade"
+      accuracy.each do |a|
+        row << a
+      end
+      csv << row
+      row = []
+      csv << row
+      row << "Acuracidade média:"
+      row << (('%.2f' % (average_accuracy / counts.size)).gsub! '.',',')
+      csv<< row
+    end
+    send_data(
+      merge,
+      type: "csv",
+      filename: "mesclagem_relatorios.csv"
+    )
   end
 
   private
