@@ -603,10 +603,11 @@ class CountsController < ApplicationController
     else
       if product.location["id"] != params[:count][:count_id]
         product.location["id"] = params[:count][:count_id]
-        product.location["locations"] = []
-        product.location["locations"] << params[:count][:location]
-        product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
-      elsif !product.location["locations"].include?(params[:count][:location])
+        # product.location["locations"] = []
+        # product.location["locations"] << params[:count][:location]
+        # product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
+      end
+      if !product.location["locations"].include?(params[:count][:location])
         product.location["locations"] << params[:count][:location]
         product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       elsif !product.location["locations"].blank? &&

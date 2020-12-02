@@ -39,7 +39,12 @@ Rails.application.routes.draw do
       post ':id/set_nonconformity',             to: 'counts#set_nonconformity'
     end
   end
+  resources :products, only: [] do
+    collection do
+      post 'set_not_new', to: 'products#set_not_new'
+      post ':id/remove_location', to: 'products#remove_location'
+    end
+  end
   put  '/submit_result',                         to: 'counts#submit_quantity_found'
   post '/companies/:company_id/products/import', to: 'imports#create'
-  post '/products/set_not_new',                  to: 'products#set_not_new'
 end
