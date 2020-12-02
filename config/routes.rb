@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   get "states/:state_id/cities", to: "cities#index"
   resources :companies, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
-    resources :counts, except: [:index,:show,:new,:edit]
+    resources :counts, except: [:index,:new,:edit]
     resources :imports, only: [:index,:show]
     get '/counts', to: 'counts#index_by_company'
   end
@@ -23,8 +23,9 @@ Rails.application.routes.draw do
   resources :users, except: [:new,:edit]
   resources :counts, only: [:index] do
     collection do
-      get  ':id/count_dashboard',                     to: 'counts#dashboard'
-      get  ':id/count_dashboard_table',               to: 'counts#dashboard_table'
+      get  'merge_reports'
+      get  ':id/count_dashboard',               to: 'counts#dashboard'
+      get  ':id/count_dashboard_table',         to: 'counts#dashboard_table'
       get  ':id/save_report',                   to: 'counts#report_save'
       get  ':id/pending_products/:employee_id', to: 'counts#pending_products'
       get  ':id/download_report(.:format)',     to: 'counts#report_download'

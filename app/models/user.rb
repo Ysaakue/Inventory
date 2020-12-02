@@ -10,12 +10,12 @@ class User < ActiveRecord::Base
   has_many :employees
 
   enum role: [
-    :inventory1,  #plan 1
-    :inventory2,  #plan 2
-    :inventory3,  #plan 3
-    :custom,      #custom plan
-    :dependent,   #aditional account to a plan
-    :master       #NT account
+    :inventory1,  #0 - plan 1
+    :inventory2,  #1 - plan 2
+    :inventory3,  #2 - plan 3
+    :custom,      #3 - custom plan
+    :dependent,   #4 - aditional account to a plan
+    :master       #5 - NT account
   ]
 
   def as_json options={}
