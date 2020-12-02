@@ -607,6 +607,9 @@ class CountsController < ApplicationController
         # product.location["locations"] << params[:count][:location]
         # product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       end
+      if product.location["locations"].blank?
+        product.location["locations"] = []
+      end
       if !product.location["locations"].include?(params[:count][:location])
         product.location["locations"] << params[:count][:location]
         product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
