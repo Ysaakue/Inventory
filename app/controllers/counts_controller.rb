@@ -105,6 +105,7 @@ class CountsController < ApplicationController
         initial_value: @count.initial_value,
         final_value: @count.final_value,
         accuracy: @count.accuracy,
+        accuracy_by_stock: @count.accuracy_by_stock,
         already_counted: (@count.counts_products.where("ignore = false").size - left_count),
         left_count: left_count,
         quantity_ignored: @count.counts_products.where("ignore = true").size,
@@ -505,7 +506,7 @@ class CountsController < ApplicationController
           row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
           row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
           row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
-          row << ((cp.results.last.blank? || cp.results.last.quantity_found < 0)? '-' : cp.results.last.quantity_found) #SALDO FINAL
+          row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
           row << cp.percentage_result #RESULTADO %
           streets = []
           stands  = []
