@@ -534,36 +534,13 @@ class CountsController < ApplicationController
           row = [""]
         end
       end
-      row = []
-      csv << row
-      row << "Empresa/Data"
-      company_date.each do |cd|
-        row << cd
-      end
-      csv << row
-      row = []
-      row << "Valor Total"
-      initial_value.each do |iv|
-        row << iv
-      end
-      csv << row
-      row = []
-      row << "Valor Resultado"
-      final_value.each do |fv|
-        row << fv
-      end
-      csv << row
-      row = []
-      row << "Acuracidade"
-      accuracy.each do |a|
-        row << a
-      end
-      csv << row
-      row = []
-      csv << row
-      row << "Acuracidade média:"
-      row << (('%.2f' % (average_accuracy / counts.size)).gsub! '.',',')
-      csv<< row
+      csv << []
+      csv << ["Empresa/Data"] + company_date
+      csv << ["Valor Total"] + initial_value
+      csv << ["Valor Resultado"] + final_value
+      csv << ["Acuracidade"] + accuracy
+      csv << []
+      csv << ["Acuracidade média:", (('%.2f' % (average_accuracy / counts.size)).gsub! '.',',')] 
     end
     send_data(
       merge,

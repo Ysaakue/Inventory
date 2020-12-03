@@ -62,8 +62,6 @@ class Product < ApplicationRecord
         "shelf": shelfs[index]
       }
     end
-    pallets.each do |pallet|
-      self.location["locations"] << pallet
-    end
+    pallets.each { |pallet| self.location["locations"] << pallet }
   end
 end

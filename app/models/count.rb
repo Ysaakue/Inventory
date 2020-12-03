@@ -299,9 +299,7 @@ class Count < ApplicationRecord
   end
 
   def calculate_accuracy
-    counts_products.where(ignore: false).each do |cp|
-      cp.calculate_attributes_without_delay(false)
-    end
+    counts_products.where(ignore: false).each { |cp| cp.calculate_attributes_without_delay(false) }
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
