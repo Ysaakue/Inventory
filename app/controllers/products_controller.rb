@@ -1,6 +1,6 @@
 class ProductsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_product, only: [:show,:update,:destroy]
+  before_action :set_product, only: [:show,:update,:destroy,:remove_location]
   before_action :set_company, only: [:index]
   
   def index
@@ -62,6 +62,29 @@ class ProductsController < ApplicationController
   def set_not_new
     Product.set_not_new(params[:products])
     render json:{status: "success"}, status: 202
+  end
+
+  def remove_location
+    byebug
+    if @product.location["locations"].include? params["location"]
+      @product.location["locations"].delete params["location"]
+      if product.save
+        render json: {
+          status: "success",
+          data: @product
+        }
+      else
+        render json: {
+          status: "error",
+          message: @product.errors
+        }
+      end
+    else
+      render json: {
+        status: "error",
+        message: "Localização inválida"
+      }
+    end
   end
 
   private

@@ -101,6 +101,7 @@ class Count < ApplicationRecord
       )
       cp.save(validate: false)
       initial_value += cp.total_value
+      initial_stock += product.current_stock
       Result.new(
         count_product_id: cp.id,
         order: 1,
@@ -127,7 +128,7 @@ class Count < ApplicationRecord
           if cp.results.size == 1
             one+=1
           elsif cp.results.size == 2 &&
-                cp.results.last.quantity_found == -1 || 
+                cp.results.order(:order).last.quantity_found == -1 || 
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -136,7 +137,7 @@ class Count < ApplicationRecord
                 )
             two+=1
           elsif cp.results.size == 3 &&
-                cp.results.last.quantity_found == -1 || 
+                cp.results.order(:order).last.quantity_found == -1 || 
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -144,7 +145,7 @@ class Count < ApplicationRecord
                   cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
                 )
             three+=1
-          elsif cp.results.last.quantity_found == -1 ||
+          elsif cp.results.order(:order).last.quantity_found == -1 ||
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -257,7 +258,7 @@ class Count < ApplicationRecord
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
         row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
         row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
-        row << ((cp.results.last.blank? || cp.results.last.quantity_found < 0)? '-' : cp.results.last.quantity_found) #SALDO FINAL
+        row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
         stands  = []
@@ -304,30 +305,38 @@ class Count < ApplicationRecord
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
+    accuracy_by_stock_ = ((self.final_stock)*100)/(self.initial_stock)
     if accuracy_ > 100
       difference = accuracy_ - 100
       accuracy_ = 100 - difference
     end
+    if accuracy_by_stock_ > 100
+      difference = accuracy_by_stock_ - 100
+      accuracy_by_stock_ = 100 - difference
+    end
     self.accuracy = accuracy_
+    self.accuracy_by_stock = accuracy_by_stock_
     self.save(validate: false)
   end
 
   def calculate_final_value
     final_value = 0
+    final_stock = 0
     counts_products.where(ignore: false,combined_count: true).each do |cp|
       final_value += cp.final_total_value
+      final_stock += cp.results.order(:order).last.quantity_found
     end
-    self.final_value = final_value
-    self.save(validate: false)
+    save(validate: false)
   end
 
   def calculate_initial_value
     initial_value = 0
+    initial_stock = 0
     counts_products.where(ignore: false).each do |cp|
       initial_value += cp.product.value * cp.product.current_stock
+      initial_stock += cp.product.current_stock
     end
-    self.initial_value = initial_value
-    self.save(validate: false)
+    save(validate: false)
   end
 
   def generate_report(content_type)
