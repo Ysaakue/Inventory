@@ -2,6 +2,8 @@ class Product < ApplicationRecord
   belongs_to :company
   has_many :counts_products, class_name: "CountProduct"
 
+  validates :code, uniqueness: { scope: :company, message: "Um produto com esse código já foi cadastrado para essa empresa" }
+
   def as_json options={}
     if options   
       if options.key?(:import)

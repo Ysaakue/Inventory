@@ -4,12 +4,13 @@ class ProductsController < ApplicationController
   before_action :set_company, only: [:index]
   
   def index
-    @products = @company.products.where(active: true)
-    if !request.query_parameters.blank? && !request.query_parameters["active"].blank? && !request.query_parameters["active"]
-      @products = @company.products
-    end
-    if !request.query_parameters.blank? && !request.query_parameters["new"].blank? && request.query_parameters["active"]
-      @products = @products.where(new: true)
+    @products = @company.products
+    if !request.query_parameters.blank? 
+      if !request.query_parameters["active"].blank? && request.query_parameters["active"]
+        @products = @products.where(active: true)
+      else !request.query_parameters["new"].blank? && request.query_parameters["new"]
+        @products = @products.where(new: true)
+      end
     end
     render json: @products
   end
