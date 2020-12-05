@@ -8,15 +8,10 @@ class User < ActiveRecord::Base
   include DeviseTokenAuth::Concerns::User
   
   has_many :employees
+  belongs_to :role
+  belongs_to :user, optional: true
 
-  enum role: [
-    :inventory1,  #0 - plan 1
-    :inventory2,  #1 - plan 2
-    :inventory3,  #2 - plan 3
-    :custom,      #3 - custom plan
-    :dependent,   #4 - aditional account to a plan
-    :master       #5 - NT account
-  ]
+  validates :user, presence: true, if: :need_user?
 
   def as_json options={}
     {
@@ -28,5 +23,12 @@ class User < ActiveRecord::Base
       allow_password_change: allow_password_change,
       first_access: (sign_in_count == 0)
     }
+  end
+
+  def need_user?
+    if !role.blank? && role.description != "dependent"
+      return false
+    end
+    return true
   end
 end
