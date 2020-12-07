@@ -21,7 +21,7 @@ class RolesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @role.errors
+        message: @role.errors.full_messages
       }, status: :unprocessable_entity
     end
   end

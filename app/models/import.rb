@@ -39,7 +39,7 @@ class Import < ApplicationRecord
         if product_created.save
           edited+=1
         else
-          product["errors"] = product_created.errors
+          product["errors"] = product_created.errors.full_messages
           self.invalid_products << product
         end
       else
@@ -63,7 +63,7 @@ class Import < ApplicationRecord
         if new_product.save
           created+=1
         else
-          product["errors"] = new_product.errors
+          product["errors"] = new_product.errors.full_messages
           self.invalid_products << product
         end
       end

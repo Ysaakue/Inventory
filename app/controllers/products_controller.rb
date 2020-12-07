@@ -33,7 +33,7 @@ class ProductsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @product.errors
+        message: @product.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -47,7 +47,7 @@ class ProductsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @product.errors
+        message: @product.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -77,7 +77,7 @@ class ProductsController < ApplicationController
       else
         render json: {
           status: "error",
-          message: @product.errors
+          message: @product.errors.full_messages
         }
       end
     else

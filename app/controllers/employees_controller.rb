@@ -22,7 +22,7 @@ class EmployeesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @employee.errors
+        message: @employee.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -36,7 +36,7 @@ class EmployeesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @employee.errors
+        message: @employee.errors.full_messages
       }, status: :unprocessable_entity
     end
   end

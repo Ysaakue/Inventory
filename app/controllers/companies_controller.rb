@@ -24,7 +24,7 @@ class CompaniesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @company.errors
+        message: @company.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -38,7 +38,7 @@ class CompaniesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @company.errors
+        message: @company.errors.full_messages
       }, status: :unprocessable_entity
     end
   end

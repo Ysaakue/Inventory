@@ -25,7 +25,7 @@ class ImportsController < ApplicationController
     else
       render json: {
         status: "error",
-        message: @import.errors
+        message: @import.errors.full_messages
       }, status: :unprocessable_entity
     end
   end

@@ -169,7 +169,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
+        message: @count.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -183,7 +183,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
+        message: @count.errors.full_messages
       }
     end
   end
@@ -321,7 +321,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
+        message: @count.errors.full_messages
       }
     end
   end
@@ -339,7 +339,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
+        message: @count.errors.full_messages
       }
     end
   end
@@ -423,7 +423,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "errors",
-        message: @cp.errors
+        message: @cp.errors.full_messages
       }
     end
   end
@@ -467,7 +467,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "errors",
-        message: @cp.errors
+        message: @cp.errors.full_messages
       }
     end
   end
