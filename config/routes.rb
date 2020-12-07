@@ -6,8 +6,8 @@ Rails.application.routes.draw do
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
   
   get "dashboard", to: "application#dashboard"
-  
   get "states/:state_id/cities", to: "cities#index"
+  
   resources :companies, except: [:new,:edit] do 
     resources :products, except: [:new,:edit]
     resources :counts, except: [:index,:new,:edit]
@@ -45,6 +45,7 @@ Rails.application.routes.draw do
       post ':id/remove_location', to: 'products#remove_location'
     end
   end
+  resources :roles, only: [:index,:create]
   put  '/submit_result',                         to: 'counts#submit_quantity_found'
   post '/companies/:company_id/products/import', to: 'imports#create'
 end

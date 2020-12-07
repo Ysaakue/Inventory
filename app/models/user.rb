@@ -31,4 +31,8 @@ class User < ActiveRecord::Base
     end
     return true
   end
+
+  def master?
+    role.description == "master"
+  end
 end

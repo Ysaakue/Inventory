@@ -419,7 +419,9 @@ class Count < ApplicationRecord
     counts_employees.shuffle.each_with_index do |x,index| 
       if index == 0
         x.products["products"] = counts_products.where('combined_count = false').each { |cp| cp.product_id }
-      x.products["products"] = []
+      else
+        x.products["products"] = []
+      end
       x.save
     end
   end
