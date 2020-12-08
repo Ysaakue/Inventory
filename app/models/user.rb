@@ -10,6 +10,7 @@ class User < ActiveRecord::Base
   has_many :employees
   belongs_to :role
   belongs_to :user, optional: true
+  has_many :users
 
   validates :user, presence: true, if: :need_user?
 
@@ -18,7 +19,7 @@ class User < ActiveRecord::Base
       id: id,
       name: name,
       email: email,
-      role: role,
+      role: (role.blank?? "" : role.description),
       uid: uid,
       allow_password_change: allow_password_change,
       first_access: (sign_in_count == 0)

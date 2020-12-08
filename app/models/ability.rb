@@ -23,6 +23,7 @@ class Ability
         can :manage, Import, company: { user_id: user.id }
         can :manage, Product, company: { user_id: user.id }
         can :manage, User, id: user.id
+        can :manage, User, user_id: user.id
       end
     end
   end
