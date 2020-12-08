@@ -4,6 +4,7 @@ class Company < ApplicationRecord
   has_many :imports
   belongs_to :city
   belongs_to :state
+  belogns_to :user
 
   validates :cnpj, uniqueness: { message: "Já existe uma empresa com esse CNPJ" }
   validates :email, uniqueness: { message: "Já existe uma empresa com esse email" }

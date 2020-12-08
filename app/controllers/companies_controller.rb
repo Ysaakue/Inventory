@@ -3,7 +3,7 @@ class CompaniesController < ApplicationController
   before_action :set_company,only:[:update,:destroy,:grant_access,:suspend_access]
 
   def index
-    @companies = Company.all
+    @companies = current_user.companies
     render json: @companies
   end
   
@@ -16,6 +16,7 @@ class CompaniesController < ApplicationController
     if @company.dimensions == nil
       @company.dimensions = {"streets": 0, "stands": 0,"shelfs": 0,"pallets": 0 }
     end
+    @company.user = current_user
     if @company.save
       render json:{
         status: "success",

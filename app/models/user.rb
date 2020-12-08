@@ -8,9 +8,10 @@ class User < ActiveRecord::Base
   include DeviseTokenAuth::Concerns::User
   
   has_many :employees
+  has_many :companies
+  has_many :users
   belongs_to :role
   belongs_to :user, optional: true
-  has_many :users
 
   validates :user, presence: true, if: :need_user?
 

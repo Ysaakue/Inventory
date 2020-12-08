@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_08_004923) do
+ActiveRecord::Schema.define(version: 2020_12_08_012237) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -63,6 +63,7 @@ ActiveRecord::Schema.define(version: 2020_12_08_004923) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.json "dimensions"
+    t.integer "user_id"
     t.index ["cnpj"], name: "index_companies_on_cnpj", unique: true
   end
 
