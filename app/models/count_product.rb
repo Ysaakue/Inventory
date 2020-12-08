@@ -50,7 +50,7 @@ class CountProduct < ApplicationRecord
         final_total_value: final_total_value,
         percentage_result_value: percentage_result_value,
         locations: (!product.location.blank? && !product.location["locations"].blank?)? product.location["locations"] : [],
-        quantity_found: results
+        quantity_found: results.order(:order)
       }
     end
   end

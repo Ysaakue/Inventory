@@ -9,7 +9,7 @@ class CountsController < ApplicationController
   ]
 
   def index
-    @counts = Count.all #where('user_id = ? or client_id = ?',current_user.id,(!current_user.client.blank?? current_user.client.id : 0)).order(date: :desc,id: :desc)
+    @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)]).order(date: :desc, id: :desc)
     render json: @counts.as_json(index: true)
   end
 
