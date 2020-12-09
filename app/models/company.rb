@@ -8,7 +8,7 @@ class Company < ApplicationRecord
 
   validates :cnpj, uniqueness: { message: "Já existe uma empresa com esse CNPJ" }
   validates :email, uniqueness: { message: "Já existe uma empresa com esse email" }
-  validate :can_create
+  validate :can_create, on: :create
 
   def as_json option={}
     {

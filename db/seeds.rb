@@ -5629,12 +5629,12 @@ if Role.count == 0
 end
 
 if !User.find_by_email(default_user_email)
-  user = User.create(name: "Admin",
+  user = User.new(name: "Admin",
     email: default_user_email,
     password: default_user_password,
     password_confirmation: default_user_password,
     role_id: Role.find_by(description: "master").id
-  )
+  ).save(validate: false)
   puts "Usuário padrão criado com sucesso!\n"
   puts "Informações de acesso são:\n"
   puts "Login: #{default_user_email}\n"

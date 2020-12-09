@@ -7,7 +7,7 @@ class Employee < ApplicationRecord
   validates :name, presence: { message: "Nome não pode ficar em branco" }
   validates :cpf, uniqueness: { message: "Já existe um operador com esse CPF" }
   validates :cpf, presence: { message: "CPF não pode ficar em branco" }
-  validate :can_create
+  validate :can_create, on: :create
 
   def counted_products(count_id)
     sql = "select count(*) as products from (results inner join count_products ON count_products.id = results.count_product_id) where results.employee_id = #{id} and count_products.count_id = #{count_id}"
