@@ -10,6 +10,7 @@ class Count < ApplicationRecord
   after_create :prepare_count
 
   validate :date_not_retrograde
+  validate :can_create
 
   enum status: [
     :first_count,           #0 -> 1
@@ -430,6 +431,21 @@ class Count < ApplicationRecord
     counts_products.where(combined_count: false).each do |cp|
       cp.combined_count = true
       cp.save(validate: false)
+    end
+  end
+
+  def can_create
+    if user.role.description != "master"
+      if user.role.description == "dependet"
+        permission = user.user.role.permissions
+        quantity = Count.where("user_id in (?) and date >= ?", [user.user.id] + user.user.user_ids, DateTime.now.days_ago(30)).count
+      else
+        permission = user.role.permissions
+        quantity = Count.where("user_id in (?) and date >= ?", [user.id] + user.user_ids, DateTime.now.days_ago(30)).count
+      end
+      if(permission["counts_per_mounth"] >= quantity)
+        errors.add(:user, ", você atingiu a quantidade limite de contagens mensais para o seu plano")
+      end
     end
   end
   

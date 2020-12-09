@@ -29,6 +29,7 @@ pt-BR:
         state: "Estado"
         city: "Cidade"
         dimensions: "Dimenssões do armazem"
+        user: "Usuário"
       count:
         date: "Data"
         status: "Fase da contagem"
@@ -63,6 +64,7 @@ pt-BR:
         new: "Novo"
         input: "Entrada"
         output: "Saída"
+        user: "Usuário"
       role:
         description: "Descrição"
         permissions: "Permissões"
@@ -71,6 +73,7 @@ pt-BR:
         role: "Perfil"
         name: "Nome"
         suspended: "Acesso suspenso"
+        user: "Usuário"
     errors:
       messages:
         record_invalid: 'A validação falhou: %{errors}'

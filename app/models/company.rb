@@ -4,10 +4,11 @@ class Company < ApplicationRecord
   has_many :imports
   belongs_to :city
   belongs_to :state
-  belogns_to :user
+  belongs_to :user
 
   validates :cnpj, uniqueness: { message: "Já existe uma empresa com esse CNPJ" }
   validates :email, uniqueness: { message: "Já existe uma empresa com esse email" }
+  validate :can_create
 
   def as_json option={}
     {
@@ -32,5 +33,20 @@ class Company < ApplicationRecord
       city_id: city_id,
       dimensions: dimensions
     }
+  end
+
+  def can_create
+    if user.role.description != "master"
+      if user.role.description == "dependet"
+        permission = user.user.role.permissions
+        quantity = Company.where("user_id in (?)", [user.user.id] + user.user.user_ids).count
+      else
+        permission = user.role.permissions
+        quantity = Company.where("user_id in (?)", [user.id] + user.user_ids).count
+      end
+      if(permission["companies"] >= quantity)
+        errors.add(:user, ", você atingiu a quantidade limite de empresas para o seu plano")
+      end
+    end
   end
 end

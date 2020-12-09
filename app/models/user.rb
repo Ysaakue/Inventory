@@ -14,6 +14,7 @@ class User < ActiveRecord::Base
   belongs_to :user, optional: true
 
   validates :user, presence: true, if: :need_user?
+  validate :can_create, on: :create
 
   def as_json options={}
     {
@@ -36,5 +37,20 @@ class User < ActiveRecord::Base
 
   def master?
     role.description == "master"
+  end
+
+  def can_create
+    if user.role.description != "master"
+      if user.role.description == "dependet"
+        permission = user.user.role.permissions
+        quantity = User.where("user_id in (?)", [user.user.id] + user.user.user_ids).count
+      else
+        permission = user.role.permissions
+        quantity = User.where("user_id in (?)", [user.id] + user.user_ids).count
+      end
+      if(permission["users"] >= quantity)
+        errors.add(:user, ", você atingiu a quantidade limite de usuários para o seu plano")
+      end
+    end
   end
 end

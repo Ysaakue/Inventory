@@ -3,6 +3,7 @@ class Product < ApplicationRecord
   has_many :counts_products, class_name: "CountProduct"
 
   validates :code, uniqueness: { scope: :company, message: "Um produto com esse código já foi cadastrado para essa empresa" }
+  validate :can_create
 
   def as_json options={}
     if options   
@@ -65,5 +66,21 @@ class Product < ApplicationRecord
       }
     end
     pallets.each { |pallet| self.location["locations"] << pallet }
+  end
+
+  def can_create
+    byebug
+    if company.user.role.description != "master"
+      if company.user.role.description == "dependet"
+        permission = company.user.user.role.permissions
+        quantity = Products.where("company_id in (?)", Company.where("user_id in (?)", [user.user.id] + user.user.user_ids).ids).count
+      else
+        permission = company.user.role.permissions
+        quantity = User.where("user_id in (?)", Company.where("user_id in (?)", [user.id] + user.user_ids).ids).count
+      end
+      if(permission["products"] >= quantity)
+        errors.add(:user, ", você atingiu a quantidade limite de produtos para o seu plano")
+      end
+    end
   end
 end
