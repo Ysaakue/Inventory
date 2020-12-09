@@ -56,7 +56,7 @@ class ProductsController < ApplicationController
     if @product.destroy
       render json:{status: "success"}, status: 202
     else
-      render json:{status: "error"}
+      render json:{status: "error"}, status: 400
     end
   end
 
@@ -78,13 +78,13 @@ class ProductsController < ApplicationController
         render json: {
           status: "error",
           message: @product.errors.full_messages
-        }
+        }, status: :unprocessable_entity
       end
     else
       render json: {
         status: "error",
-        message: "Localização inválida"
-      }
+        message: ["Localização inválida"]
+      }, status: 404
     end
   end
 

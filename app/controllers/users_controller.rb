@@ -45,13 +45,16 @@ class UsersController < ApplicationController
       render json: {
         status: "error",
         message: @user.errors.full_messages
-      }
+      }, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @user.destroy
-    render json: { status: "success" }
+    if @user.destroy
+      render json:{status: "success"}, status: 202
+    else
+      render json:{status: "error"}, status: 400
+    end
   end
 
   private

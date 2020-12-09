@@ -184,7 +184,7 @@ class CountsController < ApplicationController
       render json:{
         status: "error",
         message: @count.errors.full_messages
-      }
+      }, status: :unprocessable_entity
     end
   end
   
@@ -192,7 +192,7 @@ class CountsController < ApplicationController
     if @count.destroy
       render json:{status: "success"}, status: 202
     else
-      render json:{status: "error"}
+      render json:{status: "error"}, status: 400
     end
   end
 
@@ -202,27 +202,27 @@ class CountsController < ApplicationController
       render json:{
         status: "error",
         message: "O produto não foi encontrado para essa contagem, verifique os dados e tente novamente."
-      }
+      }, status: 400
     elsif cp.count.completed?
       render json:{
         status: "error",
         message: "A contagem já foi encerrada."
-      }
+      }, status: 400
     elsif cp.count.fourth_count_pending?
       render json:{
         status: "error",
         message: "A quarta etapa da contagem precisa ser liberada por um administrador."
-      }
+      }, status: 400
     elsif cp.count.calculating?
       render json:{
         status: "error",
         message: "Acontagem está sendo processada, tente novamente."
-      }
+      }, status: 400
     elsif cp.combined_count?
       render json:{
         status: "error",
         message: "Não há divergências na contagem desse produto."
-      }
+      }, status: 400
     else
       if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
         ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
@@ -230,7 +230,7 @@ class CountsController < ApplicationController
           render json:{
             status: "error",
             message: "Esse produto foi designado a outro auditor."
-          }
+          }, status: 400
           return
         end
       end
@@ -241,7 +241,7 @@ class CountsController < ApplicationController
           render json: {
             status: "error",
             message: "Funcionário já realizou uma contagem desse produto."
-          }
+          }, status: 400
           return
         end
         result = cp.results.order(:order)[1]
@@ -252,7 +252,7 @@ class CountsController < ApplicationController
           render json:{
             status: "error",
             message: "Outro funcionário foi designado para a quarta etapa da contagem."
-          }
+          }, status: 400
           return
         end
         result = cp.results.order(:order)[3]
@@ -274,7 +274,7 @@ class CountsController < ApplicationController
             render json:{
               status: "error",
               message: "Produto já contado nessa etapa."
-            }
+            }, status: 400
             return
           end
         else #cp.count.status != "first_count"
@@ -285,7 +285,7 @@ class CountsController < ApplicationController
             render json:{
               status: "error",
               message: "Produto já contado nessa etapa."
-            }
+            }, status: 400
             return
           end
         end
@@ -322,7 +322,7 @@ class CountsController < ApplicationController
       render json:{
         status: "error",
         message: @count.errors.full_messages
-      }
+      }, status: 400
     end
   end
 
@@ -340,7 +340,7 @@ class CountsController < ApplicationController
       render json:{
         status: "error",
         message: @count.errors.full_messages
-      }
+      }, status: 400
     end
   end
 
@@ -424,7 +424,7 @@ class CountsController < ApplicationController
       render json:{
         status: "errors",
         message: @cp.errors.full_messages
-      }
+      }, status: 400
     end
   end
 
@@ -468,7 +468,7 @@ class CountsController < ApplicationController
       render json:{
         status: "errors",
         message: @cp.errors.full_messages
-      }
+      }, status: 400
     end
   end
 

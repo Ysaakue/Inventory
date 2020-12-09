@@ -48,7 +48,7 @@ class CompaniesController < ApplicationController
     if @company.destroy
       render json: { status: "success"}, status: 202
     else
-      render json: { status: "error"}
+      render json: { status: "error"}, status: 400
     end
   end
 

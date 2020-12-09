@@ -45,7 +45,7 @@ class EmployeesController < ApplicationController
     if @employee.destroy
       render json:{status: "success"}, status: 202
     else
-      render json:{status: "error"}
+      render json:{status: "error"}, status: 400
     end
   end
 
@@ -60,7 +60,7 @@ class EmployeesController < ApplicationController
       render json: {
         status: "error",
         message: "Operador não encontrado"
-      }
+      }, status: 404
     end
   end
 
