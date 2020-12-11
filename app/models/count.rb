@@ -110,7 +110,6 @@ class Count < ApplicationRecord
     end
     initial_value = initial_value
     status = "first_count"
-    byebug
     save(validate: false)
   end
 

@@ -69,7 +69,6 @@ class Product < ApplicationRecord
   end
 
   def can_create
-    byebug
     if company.user.role.description != "master"
       if company.user.role.description == "dependet"
         permission = company.user.user.role.permissions

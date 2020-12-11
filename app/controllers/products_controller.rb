@@ -66,7 +66,6 @@ class ProductsController < ApplicationController
   end
 
   def remove_location
-    byebug
     if @product.location["locations"].include? params["location"]
       @product.location["locations"].delete params["location"]
       if product.save

@@ -12,7 +12,6 @@ class RolesController < ApplicationController
 
   def create
     @role = Role.new(role_params)
-    byebug
     if @role.save
       render json:{
         status: "success",
