@@ -101,14 +101,13 @@ class Count < ApplicationRecord
         total_value: total_value
       )
       cp.save(validate: false)
-      initial_value += cp.total_value
-      initial_stock += product.current_stock
+      self.initial_value += cp.total_value
+      self.initial_stock += product.current_stock
       Result.new(
         count_product_id: cp.id,
         order: 1,
       ).save(validate: false)
     end
-    initial_value = initial_value
     status = "first_count"
     save(validate: false)
   end
