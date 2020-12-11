@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_12_08_012237) do
+ActiveRecord::Schema.define(version: 2020_12_11_145119) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -91,7 +91,7 @@ ActiveRecord::Schema.define(version: 2020_12_08_012237) do
     t.boolean "fourth_count_released", default: false
     t.integer "fourth_count_employee"
     t.integer "products_quantity_to_count"
-    t.float "initial_value"
+    t.float "initial_value", default: 0.0
     t.float "final_value", default: 0.0
     t.float "accuracy", default: 0.0
     t.boolean "divided", default: false
@@ -99,9 +99,9 @@ ActiveRecord::Schema.define(version: 2020_12_08_012237) do
     t.integer "user_id"
     t.integer "filter", default: 0
     t.integer "minimum_value", default: 0
-    t.integer "initial_stock"
-    t.integer "final_stock"
-    t.float "accuracy_by_stock"
+    t.integer "initial_stock", default: 0
+    t.integer "final_stock", default: 0
+    t.float "accuracy_by_stock", default: 0.0
   end
 
   create_table "counts_employees", force: :cascade do |t|
