@@ -267,27 +267,15 @@ class CountsController < ApplicationController
         end
         result.quantity_found = params[:count][:quantity_found]
       else #result.quantity_found != -1
-        if cp.count.first_count?
-          if  !cp.product.location.blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["locations"].include?(params[:count][:location])
-            render json:{
-              status: "error",
-              message: "Produto já contado nessa etapa."
-            }, status: 400
-            return
-          end
-        else #cp.count.status != "first_count"
-          if  !cp.product.location.blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["locations"].include?(params[:count][:location]) &&
-              cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
-            render json:{
-              status: "error",
-              message: "Produto já contado nessa etapa."
-            }, status: 400
-            return
-          end
+        if  !cp.product.location.blank? &&
+            !cp.product.location["locations"].blank? &&
+            cp.product.location["locations"].include?(params[:count][:location]) &&
+            cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
+          render json:{
+            status: "error",
+            message: "Produto já contado nessa etapa."
+          }, status: 400
+          return
         end
         result.quantity_found += params[:count][:quantity_found]
       end
