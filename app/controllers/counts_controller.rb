@@ -554,7 +554,7 @@ class CountsController < ApplicationController
     if @count.save(validate: false)
       render json:{
         status: "success",
-        data: @count
+        data: @count.as_json(dashboard: true)
       }
     else
       render json:{
