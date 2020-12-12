@@ -11,6 +11,7 @@ class Count < ApplicationRecord
 
   validate :date_not_retrograde
   validate :can_create, on: :create
+  validate :verify_if_exist_incomplete, on: :create
 
   enum status: [
     :first_count,           #0 -> 1
@@ -444,6 +445,12 @@ class Count < ApplicationRecord
       if(permission["counts_per_mounth"] >= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de contagens mensais para o seu plano")
       end
+    end
+  end
+
+  def verify_if_exist_incomplete
+    if company.counts.where("status != 5").count > 0
+      errors.add(:user, ", você possui uma contagem incompleta, conclua ela antes de criar uma nova")
     end
   end
   
