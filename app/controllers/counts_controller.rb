@@ -5,7 +5,7 @@ class CountsController < ApplicationController
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
     :report_data,:pending_products,:question_results,:ignore_product,
-    :divide_products,:verify_count,:set_nonconformity
+    :divide_products,:verify_count,:set_nonconformity,:finish_count
   ]
 
   def index
@@ -549,10 +549,25 @@ class CountsController < ApplicationController
     )
   end
 
+  def finish_count
+    @count.status = "completed"
+    if @count.save(validate: false)
+      render json:{
+        status: "success",
+        data: @count
+      }
+    else
+      render json:{
+        status: "error",
+        message: @count.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:company_id,:products_quantity_to_count,:goal,
+      :date,:company_id,:products_quantity_to_count,:goal,
       employee_ids: []
     )
   end
