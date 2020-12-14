@@ -4,10 +4,10 @@ one:
   data: 2020-07-13
   status: 1
   flags: 
-  client_id: 1
+  company_id: 1
 
 two:
   data: 2020-07-13
   status: 1
   flags: 
-  client_id: 1
+  company_id: 1

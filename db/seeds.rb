@@ -2,15 +2,6 @@
 default_user_email = ENV["admin_email"]
 default_user_password = ENV["admin_password"]
 
-if !User.find_by_email(default_user_email)
-  user = User.new(name: "Admin", email: default_user_email, password: default_user_password, password_confirmation: default_user_password)
-  user.save!
-  puts "Usuário padrão criado com sucesso!\n"
-  puts "Informações de acesso são:\n"
-  puts "Login: #{default_user_email}\n"
-  puts "Senha: #{default_user_password}"
-end
-
 if State.count == 0
   puts("Criando estados.")
   State.create(id: 1, name: 'Acre', federation_unity: 'AC')
@@ -5608,4 +5599,44 @@ if City.count == 0
   City.create(name: "Tupiratins", state_id: 27)
   City.create(name: "Wanderlândia", state_id: 27)
   City.create(name: "Xambioá", state_id: 27)
+end
+
+if Role.count == 0
+  puts("Criando perfis de usuário")
+  Role.create(description: "inventory1", permissions: {
+    "users": 2,
+    "companies": 1,
+    "products": 1000,
+    "employees": 10,
+    "counts_per_mounth": 2
+    })
+  Role.create(description: "inventory2", permissions: {
+    "users": 4,
+    "companies": 2,
+    "products": 50000,
+    "employees": 50,
+    "counts_per_mounth": 4
+    })
+  Role.create(description: "inventory3", permissions: {
+    "users": 10,
+    "companies": 4,
+    "products": 10000,
+    "employees": 100,
+    "counts_per_mounth": 10
+    })
+  Role.create(description: "dependent", permissions: {})
+  Role.create(description: "master", permissions: {})
+end
+
+if !User.find_by_email(default_user_email)
+  user = User.new(name: "Admin",
+    email: default_user_email,
+    password: default_user_password,
+    password_confirmation: default_user_password,
+    role_id: Role.find_by(description: "master").id
+  ).save(validate: false)
+  puts "Usuário padrão criado com sucesso!\n"
+  puts "Informações de acesso são:\n"
+  puts "Login: #{default_user_email}\n"
+  puts "Senha: #{default_user_password}"
 end

@@ -3,7 +3,7 @@ task :start do
   # start server
   system("rails s -p 3001 -b 0.0.0.0 -d")
   # start delay jobs
-  system("bin/delayed_job -n 3 start")
+  system("bin/delayed_job -n 5 start")
 end
 
 desc 'stop rails'

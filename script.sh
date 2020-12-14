@@ -1,5 +1,5 @@
 #!/bin/bash
 
-git pull origin master
+git pull origin develop
 rake db:migrate
 rake start

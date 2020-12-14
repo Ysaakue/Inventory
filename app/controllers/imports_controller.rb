@@ -1,10 +1,10 @@
 class ImportsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_client, only: [:create,:index]
+  before_action :set_company, only: [:create,:index]
   before_action :set_import, only: [:show]
 
   def index
-    @imports = @client.imports
+    @imports = @company.imports
     render json: @imports
   end
 
@@ -14,7 +14,7 @@ class ImportsController < ApplicationController
 
   def create
     @import = Import.new
-    @import.client_id = @client.id
+    @import.company_id = @company.id
     @import.description = "Aguardando processamento"
     @import.products = params[:products]
     if @import.save
@@ -25,7 +25,7 @@ class ImportsController < ApplicationController
     else
       render json: {
         status: "error",
-        message: @import.errors
+        message: @import.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -35,8 +35,8 @@ class ImportsController < ApplicationController
     @import = Import.find(params[:id])
   end
 
-  def set_client
-    @client = Client.find(params[:client_id])
+  def set_company
+    @company = Company.find(params[:company_id])
   end
 
   def import_params

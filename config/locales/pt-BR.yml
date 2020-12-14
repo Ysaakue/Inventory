@@ -2,8 +2,78 @@
 pt-BR:
   unauthorized:
     manage:
-      all: "Token de login expirado. Faça login novamente"
+      all: "Você não tem autorização para acessar essa página."
   activerecord:
+    models:
+      company: "Empresa"
+      count: "Contagem"
+      employee: "Auditor"
+      import: "Importação"
+      product: "Produto"
+      role: "Perfil"
+      user: "Usuário"
+    attributes:
+      company:
+        company_name: "Nome da empresa"
+        fantasy_name: "Nome fantasia"
+        state_registration: "Registro de estado"
+        contact_name_telephone: "Nome do contato(telefone)"
+        telephone_number: "Número de telefone"
+        contact_name_cell_phone: "Nome do contato(celular)"
+        cell_phone_number: "Número de celular"
+        street_name_address: "Nome da rua"
+        number_address: "Número do endereço"
+        complement_address: "Complemento do endereço"
+        neighborhood_address: "Bairro"
+        postal_code_address: "Código postal"
+        state: "Estado"
+        city: "Cidade"
+        dimensions: "Dimenssões do armazem"
+        user: "Usuário"
+      count:
+        date: "Data"
+        status: "Fase da contagem"
+        company: "Empresa"
+        products_quantity_to_count: "Quantidade de produtos"
+        initial_value: "Valor inicial"
+        final_value: "Valor final"
+        accuracy: "Acuracidade"
+        goal: "Meta"
+        user: "Usuário"
+        filter: "Filtro"
+        minimum_value: "Valor mínimo"
+        initial_stock: "Estoque inicial"
+        final_stock: "Estoque final"
+        accuracy_by_stock: "Acuracidade de estoque"
+      employee:
+        name: "Nome"
+        user: "Usuário"
+      Import:
+        company: "Empresa"
+        products: "Produtos"
+        description: "Descrição"
+      product:
+        description: "Descrição"
+        code: "Código"
+        current_stock: "Estoque atual"
+        value: "Valor unitário"
+        location: "Dados de localização"
+        company: "Empresa"
+        unit_measurement: "Unidade de medida"
+        active: "Ativo"
+        new: "Novo"
+        input: "Entrada"
+        output: "Saída"
+        user: "Usuário"
+      role:
+        description: "Descrição"
+        permissions: "Permissões"
+      user:
+        password: "Senha"
+        role: "Perfil"
+        name: "Nome"
+        suspended: "Acesso suspenso"
+        user: "Usuário"
     errors:
       messages:
         record_invalid: 'A validação falhou: %{errors}'

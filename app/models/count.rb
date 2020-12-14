@@ -1,5 +1,5 @@
 class Count < ApplicationRecord
-  belongs_to :client
+  belongs_to :company
   belongs_to :user
   has_many :counts_employees, class_name: "CountEmployee"
   has_many :employees, through: :counts_employees
@@ -10,6 +10,8 @@ class Count < ApplicationRecord
   after_create :prepare_count
 
   validate :date_not_retrograde
+  validate :can_create, on: :create
+  validate :verify_if_exist_incomplete, on: :create
 
   enum status: [
     :first_count,           #0 -> 1
@@ -21,22 +23,41 @@ class Count < ApplicationRecord
     :calculating            #6
   ]
 
+  enum filter: [
+    :random,                #0
+    :value,                 #1
+    :turnover               #2
+  ]
+
   def date_not_retrograde
-    if date < Date.today
+    if date == nil || date < Date.today
       errors.add(:date, "A data não pode ser retrograda")
     end
   end
 
   def as_json options={}
-    index = if options && options.key?(:index)
-      options[:index]
+    if options 
+      index = if options.key?(:index)
+        options[:index]
+      end
+      dashboard = if options.key?(:dashboard)
+        options[:dashboard]
+      end
     end
     if index
       {
         id: id,
         date: date,
         status: status,
-        client: client.fantasy_name,
+        company: company.fantasy_name
+      }
+    elsif dashboard
+      {
+        id: id,
+        date: date,
+        company: company.fantasy_name,
+        accuracy: accuracy,
+        products_quantity: products.count
       }
     else
       {
@@ -44,7 +65,7 @@ class Count < ApplicationRecord
         date: date,
         goal: goal,
         status: status,
-        client: client.fantasy_name,
+        company: company.fantasy_name,
         employees: employees,
         products: counts_products
       }
@@ -52,32 +73,44 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
-    self.status = "calculating"
-    self.save(validate: false)
-    temp_products = self.client.products.where(active: true)
-    if self.products_quantity_to_count < temp_products.size
-      temp_products = temp_products.shuffle
-      temp_products = temp_products[0..products_quantity_to_count-1]
+    status = "calculating"
+    save(validate: false)
+    temp_products = company.products.where(active: true)
+    if products_quantity_to_count < temp_products.size
+      if value?
+        temp_products =  temp_products.where('value >= ?', self.minimum_value)
+                                      .order(value: :desc)
+                                      .limit(products_quantity_to_count)
+      elsif turnover?
+        temp_products =  temp_products.select('*,(products.output*100/products.input) as giro')
+                                      .where('products.input is not null').order('giro desc')
+                                      .limit(products_quantity_to_count)
+      else
+        temp_products = temp_products.shuffle[0..products_quantity_to_count-1]
+      end
     end
     initial_value = 0
     temp_products.each do |product|
+      product.location.delete("step")
+      product.location.delete("counted_on_step")
+      product.save
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
         product_id: product.id,
-        count_id: self.id,
+        count_id: id,
         combined_count: false,
         total_value: total_value
       )
       cp.save(validate: false)
-      initial_value += cp.total_value
+      self.initial_value += cp.total_value
+      self.initial_stock += product.current_stock
       Result.new(
         count_product_id: cp.id,
         order: 1,
       ).save(validate: false)
     end
-    self.initial_value = initial_value
-    self.status = "first_count"
-    self.save(validate: false)
+    status = "first_count"
+    save(validate: false)
   end
 
   def verify_count
@@ -95,7 +128,7 @@ class Count < ApplicationRecord
           if cp.results.size == 1
             one+=1
           elsif cp.results.size == 2 &&
-                cp.results.last.quantity_found == -1 || 
+                cp.results.order(:order).last.quantity_found == -1 || 
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -104,7 +137,7 @@ class Count < ApplicationRecord
                 )
             two+=1
           elsif cp.results.size == 3 &&
-                cp.results.last.quantity_found == -1 || 
+                cp.results.order(:order).last.quantity_found == -1 || 
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -112,7 +145,7 @@ class Count < ApplicationRecord
                   cp.product.location["counted_on_step"].size != cp.product.location["locations"].size
                 )
             three+=1
-          elsif cp.results.last.quantity_found == -1 ||
+          elsif cp.results.order(:order).last.quantity_found == -1 ||
                 (
                   !cp.product.location["locations"].blank? &&
                   cp.product.location["locations"].size > 1 &&
@@ -133,6 +166,9 @@ class Count < ApplicationRecord
       elsif status_before == "second_count" && two == 0
         if three != 0
           self.status = "third_count"
+          if self.divided?
+            self.delegate_employee_to_third_count
+          end
         else
           self.status = "completed"
         end
@@ -214,7 +250,7 @@ class Count < ApplicationRecord
 
       count.counts_products.each do |cp|
         row = []
-        row << count.client.fantasy_name #EMPRESA
+        row << count.company.fantasy_name #EMPRESA
         row << cp.product.code #COD
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
@@ -225,7 +261,7 @@ class Count < ApplicationRecord
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
         row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
         row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
-        row << ((cp.results.last.blank? || cp.results.last.quantity_found < 0)? '-' : cp.results.last.quantity_found) #SALDO FINAL
+        row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
         stands  = []
@@ -248,7 +284,7 @@ class Count < ApplicationRecord
         row << pallets.join(',') #PALLETS
         row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
         row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
-        row << (cp.ignore?? cp.justification : '') #JUSTIFICATIVA
+        row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
     end
@@ -266,36 +302,42 @@ class Count < ApplicationRecord
   end
 
   def calculate_accuracy
-    counts_products.where(ignore: false).each do |cp|
-      cp.calculate_attributes_without_delay(false)
-    end
+    counts_products.where(ignore: false).each { |cp| cp.calculate_attributes_without_delay(false) }
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
+    accuracy_by_stock_ = ((self.final_stock)*100)/(self.initial_stock)
     if accuracy_ > 100
       difference = accuracy_ - 100
       accuracy_ = 100 - difference
     end
+    if accuracy_by_stock_ > 100
+      difference = accuracy_by_stock_ - 100
+      accuracy_by_stock_ = 100 - difference
+    end
     self.accuracy = accuracy_
+    self.accuracy_by_stock = accuracy_by_stock_
     self.save(validate: false)
   end
 
   def calculate_final_value
     final_value = 0
+    final_stock = 0
     counts_products.where(ignore: false,combined_count: true).each do |cp|
       final_value += cp.final_total_value
+      final_stock += cp.results.order(:order).last.quantity_found
     end
-    self.final_value = final_value
-    self.save(validate: false)
+    save(validate: false)
   end
 
   def calculate_initial_value
     initial_value = 0
+    initial_stock = 0
     counts_products.where(ignore: false).each do |cp|
       initial_value += cp.product.value * cp.product.current_stock
+      initial_stock += cp.product.current_stock
     end
-    self.initial_value = initial_value
-    self.save(validate: false)
+    save(validate: false)
   end
 
   def generate_report(content_type)
@@ -306,7 +348,7 @@ class Count < ApplicationRecord
       @report.count_id = self.id
     end
     if @report.present? && !@report.generating?
-      @report.filename = "relatorio_contagem_#{(!(self.client.fantasy_name.include? " ") == false)? (self.client.fantasy_name.gsub! " ", "_") : (self.client.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
+      @report.filename = "relatorio_contagem_#{(!(self.company.fantasy_name.include? " ") == false)? (self.company.fantasy_name.gsub! " ", "_") : (self.company.fantasy_name)}_#{self.date.strftime("%d-%m-%Y")}.#{content_type}"
       @report.content_type = content_type
       @report.generating!
       
@@ -373,10 +415,42 @@ class Count < ApplicationRecord
     end
   end
 
+  def delegate_employee_to_third_count
+    counts_employees.shuffle.each_with_index do |x,index| 
+      if index == 0
+        x.products["products"] = counts_products.where('combined_count = false').each { |cp| cp.product_id }
+      else
+        x.products["products"] = []
+      end
+      x.save
+    end
+  end
+
   def complete_products_step
     counts_products.where(combined_count: false).each do |cp|
       cp.combined_count = true
       cp.save(validate: false)
+    end
+  end
+
+  def can_create
+    if user.role.description != "master"
+      if user.role.description == "dependet"
+        permission = user.user.role.permissions
+        quantity = Count.where("user_id in (?) and date >= ?", [user.user.id] + user.user.user_ids, DateTime.now.days_ago(30)).count
+      else
+        permission = user.role.permissions
+        quantity = Count.where("user_id in (?) and date >= ?", [user.id] + user.user_ids, DateTime.now.days_ago(30)).count
+      end
+      if(permission["counts_per_mounth"] >= quantity)
+        errors.add(:user, ", você atingiu a quantidade limite de contagens mensais para o seu plano")
+      end
+    end
+  end
+
+  def verify_if_exist_incomplete
+    if company.counts.where("status != 5").count > 0
+      errors.add(:user, ", você possui uma contagem incompleta, conclua ela antes de criar uma nova")
     end
   end
   

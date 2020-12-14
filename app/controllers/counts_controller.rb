@@ -1,19 +1,20 @@
 class CountsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_client, only: [:index_by_client]
+  before_action :set_company, only: [:index_by_company]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
-    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,:report_data,
-    :pending_products,:question_results,:ignore_product,:divide_products,:verify_count
+    :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
+    :report_data,:pending_products,:question_results,:ignore_product,
+    :divide_products,:verify_count,:set_nonconformity,:finish_count
   ]
 
   def index
-    @counts = Count.where('user_id = ? or client_id = ?',current_user.id,(!current_user.client.blank?? current_user.client.id : 0)).order(date: :desc,id: :desc)
+    @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)]).order(date: :desc, id: :desc)
     render json: @counts.as_json(index: true)
   end
 
-  def index_by_client
-    @counts = @client.counts.order(date: :desc,id: :desc)
+  def index_by_company
+    @counts = @company.counts.order(date: :desc,id: :desc)
     render json: @counts.as_json(index: true)
   end
 
@@ -69,7 +70,7 @@ class CountsController < ApplicationController
         goal: @count.goal,
         status: @count.status,
         report_csv_status: (file.present?? file.status : "nonexistent"),
-        client: @count.client.fantasy_name,
+        company: @count.company.fantasy_name,
         initial_value: @count.initial_value,
         final_value: @count.final_value,
         accuracy: @count.accuracy,
@@ -81,15 +82,83 @@ class CountsController < ApplicationController
       }
     }
   end
+
+  def dashboard
+    file = @count.reports.find_by(content_type: "csv")
+    status = Count.statuses[@count.status]
+    if status > 2 and status != 4
+      left_count = 0
+    else
+      if status != 4
+        status+=1
+      end
+      left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,status).size
+    end
+    render json: {
+      count: {
+        id: @count.id,
+        date: @count.date,
+        goal: @count.goal,
+        status: @count.status,
+        report_csv_status: (file.present?? file.status : "nonexistent"),
+        company: @count.company.fantasy_name,
+        initial_value: @count.initial_value,
+        final_value: @count.final_value,
+        accuracy: @count.accuracy,
+        accuracy_by_stock: @count.accuracy_by_stock,
+        already_counted: (@count.counts_products.where("ignore = false").size - left_count),
+        left_count: left_count,
+        quantity_ignored: @count.counts_products.where("ignore = true").size,
+        employees: @count.employees,
+      }
+    }
+  end
+
+  def dashboard_table
+    page = 0
+    quantity = 50
+    if !request.query_parameters.blank? && !request.query_parameters["quant"].blank?
+      quantity = request.query_parameters["quant"].to_i
+    end
+    if !request.query_parameters.blank? && !request.query_parameters["pag"].blank?
+      page = request.query_parameters["pag"].to_i - 1
+    end
+    max = @count.counts_products.size
+    if max % quantity > 0
+      total_pages = (max / quantity) + 1
+    else
+      total_pages = (max / quantity)
+    end
+    array_start = 0
+    array_end = max-1
+    if total_pages > 1 && page <= total_pages
+      array_start = page * quantity
+      if (array_start + quantity - 1) < (max-1)
+        array_end = array_start + quantity - 1
+      end
+    end
+
+    render json: {
+      current_page: page+1,
+      current_quantity_per_page: quantity,
+      total_quantity: max,
+      current_start: array_start,
+      current_end: array_end,
+      total_pages: total_pages,
+      count: {
+        products: @count.counts_products[array_start..array_end].as_json
+      }
+    }
+  end
   
   def create
     @count = Count.new(count_params)
-    @count.client_id = params[:client_id]
+    @count.company_id = params[:company_id]
     if @count.products_quantity_to_count == nil
-      @count.products_quantity_to_count = @count.client.products.where(active: true).size
+      @count.products_quantity_to_count = @count.company.products.where(active: true).size
     end
     if !params[:count][:clear_locations].blank? && params[:count][:clear_locations]
-      Product.clear_location(params[:client_id])
+      Product.clear_location(params[:company_id])
     end
     @count.user = current_user
     if @count.save
@@ -100,7 +169,7 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
+        message: @count.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -114,8 +183,8 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
-      }
+        message: @count.errors.full_messages
+      }, status: :unprocessable_entity
     end
   end
   
@@ -123,7 +192,7 @@ class CountsController < ApplicationController
     if @count.destroy
       render json:{status: "success"}, status: 202
     else
-      render json:{status: "error"}
+      render json:{status: "error"}, status: 400
     end
   end
 
@@ -133,27 +202,27 @@ class CountsController < ApplicationController
       render json:{
         status: "error",
         message: "O produto não foi encontrado para essa contagem, verifique os dados e tente novamente."
-      }
+      }, status: 400
     elsif cp.count.completed?
       render json:{
         status: "error",
         message: "A contagem já foi encerrada."
-      }
+      }, status: 400
     elsif cp.count.fourth_count_pending?
       render json:{
         status: "error",
         message: "A quarta etapa da contagem precisa ser liberada por um administrador."
-      }
+      }, status: 400
     elsif cp.count.calculating?
       render json:{
         status: "error",
         message: "Acontagem está sendo processada, tente novamente."
-      }
+      }, status: 400
     elsif cp.combined_count?
       render json:{
         status: "error",
         message: "Não há divergências na contagem desse produto."
-      }
+      }, status: 400
     else
       if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
         ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
@@ -161,7 +230,7 @@ class CountsController < ApplicationController
           render json:{
             status: "error",
             message: "Esse produto foi designado a outro auditor."
-          }
+          }, status: 400
           return
         end
       end
@@ -172,7 +241,7 @@ class CountsController < ApplicationController
           render json: {
             status: "error",
             message: "Funcionário já realizou uma contagem desse produto."
-          }
+          }, status: 400
           return
         end
         result = cp.results.order(:order)[1]
@@ -183,7 +252,7 @@ class CountsController < ApplicationController
           render json:{
             status: "error",
             message: "Outro funcionário foi designado para a quarta etapa da contagem."
-          }
+          }, status: 400
           return
         end
         result = cp.results.order(:order)[3]
@@ -198,27 +267,15 @@ class CountsController < ApplicationController
         end
         result.quantity_found = params[:count][:quantity_found]
       else #result.quantity_found != -1
-        if cp.count.first_count?
-          if  !cp.product.location.blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["locations"].include?(params[:count][:location])
-            render json:{
-              status: "error",
-              message: "Produto já contado nessa etapa."
-            }
-            return
-          end
-        else #cp.count.status != "first_count"
-          if  !cp.product.location.blank? &&
-              !cp.product.location["locations"].blank? &&
-              cp.product.location["locations"].include?(params[:count][:location]) &&
-              cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
-            render json:{
-              status: "error",
-              message: "Produto já contado nessa etapa."
-            }
-            return
-          end
+        if  !cp.product.location.blank? &&
+            !cp.product.location["locations"].blank? &&
+            cp.product.location["locations"].include?(params[:count][:location]) &&
+            cp.product.location["counted_on_step"].include?(cp.product.location["locations"].index(params[:count][:location]))
+          render json:{
+            status: "error",
+            message: "Produto já contado nessa etapa."
+          }, status: 400
+          return
         end
         result.quantity_found += params[:count][:quantity_found]
       end
@@ -252,8 +309,8 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
-      }
+        message: @count.errors.full_messages
+      }, status: 400
     end
   end
 
@@ -270,15 +327,15 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @count.errors
-      }
+        message: @count.errors.full_messages
+      }, status: 400
     end
   end
 
   def report_pdf
     pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
     pdf = WickedPdf.new.pdf_from_string(pdf_html)
-    send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+    send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
   end
 
   def report_save
@@ -302,7 +359,7 @@ class CountsController < ApplicationController
       format.pdf do
         pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
         pdf = WickedPdf.new.pdf_from_string(pdf_html)
-        send_data pdf, filename: "relatorio_contagem_#{@count.client.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+        send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
       end
     end
   end
@@ -312,7 +369,7 @@ class CountsController < ApplicationController
       id: @count.id,
       date: @count.date,
       status: @count.status,
-      client: @count.client.fantasy_name,
+      company: @count.company.fantasy_name,
       products: @count.counts_products,
       employees: @count.employees_to_report
     }
@@ -344,7 +401,9 @@ class CountsController < ApplicationController
       @cp.reset_results
       @count.delay.calculate_initial_value
       @count.delay.calculate_final_value
-      @count.verify_count
+      if !@count.first_count? && !@count.calculating?
+        @count.verify_count
+      end
       render json:{
         status: "success",
         data: @cp.as_json
@@ -352,8 +411,8 @@ class CountsController < ApplicationController
     else
       render json:{
         status: "errors",
-        message: @cp.errors
-      }
+        message: @cp.errors.full_messages
+      }, status: 400
     end
   end
 
@@ -365,7 +424,7 @@ class CountsController < ApplicationController
   end
 
   def products_simplified
-    products = @count.products
+    products = @count.products.where(combined_count: false)
     render json:{
       products: products.as_json(simple: true)
     }
@@ -378,10 +437,125 @@ class CountsController < ApplicationController
     }
   end
 
+  def set_nonconformity
+    @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
+    @cp.ignore = true
+    @cp.nonconformity = params["nonconformity"]
+    if @cp.save
+      @cp.reset_results
+      @count.delay.calculate_initial_value
+      @count.delay.calculate_final_value
+      if !@count.first_count? && !@count.calculating?
+        @count.verify_count
+      end
+      render json:{
+        status: "success",
+        data: @cp.as_json
+      }
+    else
+      render json:{
+        status: "errors",
+        message: @cp.errors.full_messages
+      }, status: 400
+    end
+  end
+
+  def merge_reports
+    cols = [
+      "DATA","EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+      "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+      "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+    ]
+    counts = Count.where('id in (?)',params[:ids])
+    merge = CSV.generate(headers: true) do |csv|
+      csv << cols
+      company_date = []
+      accuracy = []
+      initial_value = []
+      final_value =[]
+      average_accuracy = 0
+      counts.each do |count|
+        company_date << "#{count.company.fantasy_name} - #{count.date}"
+        accuracy << (('%.2f' % count.accuracy).gsub! '.',',')
+        average_accuracy += count.accuracy
+        initial_value << (('%.2f' % count.initial_value).gsub! '.',',')
+        final_value << (('%.2f' % count.final_value).gsub! '.',',')
+        row = []
+        row << count.date #DATA
+        count.counts_products.each do |cp|
+          row << count.company.fantasy_name #EMPRESA
+          row << cp.product.code #COD
+          row << cp.product.description #MATERIAL
+          row << cp.product.unit_measurement #UND
+          row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
+          row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
+          row << cp.product.current_stock #SALDO INICIAL
+          row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
+          row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
+          row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
+          row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+          row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
+          row << cp.percentage_result #RESULTADO %
+          streets = []
+          stands  = []
+          shelfs  = []
+          pallets  = []
+          if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+            cp.product.location["locations"].each do |location|
+              if location.keys.include? "pallet"
+                pallets << location["pallet"]
+              else
+                streets << location["street"]
+                stands  << location["stand"]
+                shelfs  << location["shelf"]
+              end
+            end
+          end
+          row << streets.join(',') #RUA
+          row << stands.join(',') #ESTANTE
+          row << shelfs.join(',') #PRATELEIRA
+          row << pallets.join(',') #PALLETS
+          row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
+          row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+          row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+          csv << row
+          row = [""]
+        end
+      end
+      csv << []
+      csv << ["Empresa/Data"] + company_date
+      csv << ["Valor Total"] + initial_value
+      csv << ["Valor Resultado"] + final_value
+      csv << ["Acuracidade"] + accuracy
+      csv << []
+      csv << ["Acuracidade média:", (('%.2f' % (average_accuracy / counts.size)).gsub! '.',',')] 
+    end
+    send_data(
+      merge,
+      type: "csv",
+      filename: "mesclagem_relatorios.csv"
+    )
+  end
+
+  def finish_count
+    @count.status = "completed"
+    if @count.save(validate: false)
+      render json:{
+        status: "success",
+        data: @count.as_json(dashboard: true)
+      }
+    else
+      render json:{
+        status: "error",
+        message: @count.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
   def count_params
     params.require(:count).permit(
-      :date,:status,:client_id,:products_quantity_to_count,:goal,
+      :date,:company_id,:products_quantity_to_count,:goal,
       employee_ids: []
     )
   end
@@ -390,8 +564,8 @@ class CountsController < ApplicationController
     @count = Count.find(params[:id])
   end
 
-  def set_client
-    @client = Client.find(params[:client_id])
+  def set_company
+    @company = Company.find(params[:company_id])
   end
 
   def set_employee
@@ -410,10 +584,14 @@ class CountsController < ApplicationController
     else
       if product.location["id"] != params[:count][:count_id]
         product.location["id"] = params[:count][:count_id]
+        # product.location["locations"] = []
+        # product.location["locations"] << params[:count][:location]
+        # product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
+      end
+      if product.location["locations"].blank?
         product.location["locations"] = []
-        product.location["locations"] << params[:count][:location]
-        product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
-      elsif !product.location["locations"].include?(params[:count][:location])
+      end
+      if !product.location["locations"].include?(params[:count][:location])
         product.location["locations"] << params[:count][:location]
         product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       elsif !product.location["locations"].blank? &&

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_11_22_222435) do
+ActiveRecord::Schema.define(version: 2020_12_11_145119) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "btree_gin"
@@ -43,7 +43,7 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
-  create_table "clients", force: :cascade do |t|
+  create_table "companies", force: :cascade do |t|
     t.string "cnpj"
     t.string "company_name"
     t.string "fantasy_name"
@@ -63,7 +63,8 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.json "dimensions"
-    t.index ["cnpj"], name: "index_clients_on_cnpj", unique: true
+    t.integer "user_id"
+    t.index ["cnpj"], name: "index_companies_on_cnpj", unique: true
   end
 
   create_table "count_products", force: :cascade do |t|
@@ -78,23 +79,29 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.float "percentage_result_value", default: 0.0
     t.boolean "ignore", default: false
     t.string "justification"
+    t.string "nonconformity"
   end
 
   create_table "counts", force: :cascade do |t|
     t.date "date"
     t.integer "status", default: 0
-    t.integer "client_id"
+    t.integer "company_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "fourth_count_released", default: false
     t.integer "fourth_count_employee"
     t.integer "products_quantity_to_count"
-    t.float "initial_value"
+    t.float "initial_value", default: 0.0
     t.float "final_value", default: 0.0
     t.float "accuracy", default: 0.0
     t.boolean "divided", default: false
     t.integer "goal"
     t.integer "user_id"
+    t.integer "filter", default: 0
+    t.integer "minimum_value", default: 0
+    t.integer "initial_stock", default: 0
+    t.integer "final_stock", default: 0
+    t.float "accuracy_by_stock", default: 0.0
   end
 
   create_table "counts_employees", force: :cascade do |t|
@@ -130,11 +137,12 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
   end
 
   create_table "imports", force: :cascade do |t|
-    t.integer "client_id"
+    t.integer "company_id"
     t.json "products"
     t.string "description"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.json "invalid_products"
   end
 
   create_table "products", force: :cascade do |t|
@@ -143,7 +151,7 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.integer "current_stock"
     t.float "value"
     t.json "location"
-    t.integer "client_id"
+    t.integer "company_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.string "unit_measurement", default: "UN"
@@ -151,6 +159,7 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.boolean "new", default: true
     t.integer "input"
     t.integer "output"
+    t.index ["code", "company_id"], name: "index_products_on_code_and_company_id", unique: true
   end
 
   create_table "reports", force: :cascade do |t|
@@ -172,6 +181,13 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.datetime "updated_at", precision: 6, null: false
   end
 
+  create_table "roles", force: :cascade do |t|
+    t.string "description"
+    t.json "permissions"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
   create_table "states", force: :cascade do |t|
     t.string "name"
     t.string "federation_unity"
@@ -188,8 +204,6 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.boolean "allow_password_change", default: false
     t.datetime "remember_created_at"
     t.string "name"
-    t.string "nickname"
-    t.string "image"
     t.string "email"
     t.text "tokens"
     t.datetime "created_at", precision: 6, null: false
@@ -199,24 +213,24 @@ ActiveRecord::Schema.define(version: 2020_11_22_222435) do
     t.datetime "last_sign_in_at"
     t.string "current_sign_in_ip"
     t.string "last_sign_in_ip"
-    t.boolean "admin", default: false
-    t.integer "client_id"
     t.boolean "suspended", default: false
+    t.integer "role_id"
+    t.integer "user_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
   end
 
   add_foreign_key "cities", "states", on_delete: :cascade
-  add_foreign_key "clients", "cities"
-  add_foreign_key "clients", "states"
+  add_foreign_key "companies", "cities"
+  add_foreign_key "companies", "states"
   add_foreign_key "count_products", "counts", on_delete: :cascade
   add_foreign_key "count_products", "products", on_delete: :cascade
-  add_foreign_key "counts", "clients", on_delete: :cascade
+  add_foreign_key "counts", "companies", on_delete: :cascade
   add_foreign_key "counts_employees", "counts", on_delete: :cascade
   add_foreign_key "counts_employees", "employees", on_delete: :cascade
-  add_foreign_key "imports", "clients", on_delete: :cascade
-  add_foreign_key "products", "clients", on_delete: :cascade
+  add_foreign_key "imports", "companies", on_delete: :cascade
+  add_foreign_key "products", "companies", on_delete: :cascade
   add_foreign_key "reports", "counts", on_delete: :cascade
   add_foreign_key "results", "count_products", on_delete: :cascade
   add_foreign_key "results", "employees"

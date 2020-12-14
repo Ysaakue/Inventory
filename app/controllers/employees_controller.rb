@@ -3,7 +3,7 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: [:show,:update,:destroy]
   
   def index
-    @employees = current_user.employees
+    @employees = Employee.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
     render json: @employees.as_json(index: true)
   end
   
@@ -22,7 +22,7 @@ class EmployeesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @employee.errors
+        message: @employee.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -36,7 +36,7 @@ class EmployeesController < ApplicationController
     else
       render json:{
         status: "error",
-        message: @employee.errors
+        message: @employee.errors.full_messages
       }, status: :unprocessable_entity
     end
   end
@@ -45,7 +45,7 @@ class EmployeesController < ApplicationController
     if @employee.destroy
       render json:{status: "success"}, status: 202
     else
-      render json:{status: "error"}
+      render json:{status: "error"}, status: 400
     end
   end
 
@@ -60,7 +60,7 @@ class EmployeesController < ApplicationController
       render json: {
         status: "error",
         message: "Operador não encontrado"
-      }
+      }, status: 404
     end
   end
 
