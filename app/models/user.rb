@@ -36,7 +36,7 @@ class User < ActiveRecord::Base
   end
 
   def master?
-    role.description == "master"
+    role.blank?? false : role.description == "master"
   end
 
   def can_create

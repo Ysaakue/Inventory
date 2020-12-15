@@ -2,10 +2,10 @@ class RolesController < ApplicationController
   load_and_authorize_resource
 
   def index
-    if current_user.role.description != "master"
-      @roles = Role.where("description == 'dependent'")
-    else
+    if current_user.master?
       @roles = Role.where("description != 'dependent'")
+    else
+      @roles = Role.where("description == 'dependent'")
     end
     render json: @roles
   end

@@ -3,7 +3,11 @@ class EmployeesController < ApplicationController
   before_action :set_employee, only: [:show,:update,:destroy]
   
   def index
-    @employees = Employee.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
+    if current_user.master?
+      @employees = Employee.all
+    else
+      @employees = Employee.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
+    end
     render json: @employees.as_json(index: true)
   end
   

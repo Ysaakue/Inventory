@@ -3,7 +3,11 @@ class CompaniesController < ApplicationController
   before_action :set_company,only:[:update,:destroy,:grant_access,:suspend_access]
 
   def index
-    @companies = Company.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
+    if current_user.master?
+      @companies = Company.all
+    else
+      @companies = Company.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
+    end
     render json: @companies
   end
   
