@@ -32,10 +32,13 @@ class Import < ApplicationRecord
         else
           product_created.active = true
         end
-        product_created.process_locations((product["streets"] != nil)? product["streets"] : [],
-                                          (product["stands"] != nil)? product["stands"] : [],
-                                          (product["shelfs"] != nil)? product["shelfs"] : [],
-                                          (product["pallets"] != nil)? product["pallets"] : [])
+        if  product["pallets"] != nil || ( product["streets"] != nil &&
+            product["stands"] != nil && product["shelfs"] != nil)
+          product_created.process_locations((product["streets"] != nil)? product["streets"] : [],
+                                            (product["stands"] != nil)? product["stands"] : [],
+                                            (product["shelfs"] != nil)? product["shelfs"] : [],
+                                            (product["pallets"] != nil)? product["pallets"] : [])
+        end
         if product_created.save
           edited+=1
         else
@@ -53,10 +56,13 @@ class Import < ApplicationRecord
           input: (product["input"] != nil)? product["input"] : 0,
           output: (product["output"] != nil)? product["output"] : 0
         )
-        new_product.process_locations((product["streets"] != nil)? product["streets"] : [],
-                                      (product["stands"] != nil)? product["stands"] : [],
-                                      (product["shelfs"] != nil)? product["shelfs"] : [],
-                                      (product["pallets"] != nil)? product["pallets"] : [])
+        if  product["pallets"] != nil || ( product["streets"] != nil &&
+            product["stands"] != nil && product["shelfs"] != nil)
+          new_product.process_locations((product["streets"] != nil)? product["streets"] : [],
+                                        (product["stands"] != nil)? product["stands"] : [],
+                                        (product["shelfs"] != nil)? product["shelfs"] : [],
+                                        (product["pallets"] != nil)? product["pallets"] : [])
+        end
         if new_product.current_stock == 0
           new_product.active = false
         end

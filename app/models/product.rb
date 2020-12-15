@@ -59,13 +59,19 @@ class Product < ApplicationRecord
       locations: []
     }
     Range.new(0,[streets.size,stands.size,shelfs.size].min - 1).each do |index|
-      self.location["locations"] << {
-        "street": streets[index],
-        "stand": stands[index],
-        "shelf": shelfs[index]
-      }
+      if streets[index] != "" && stands[index] != "" && shelfs[index] != ""
+        self.location["locations"] << {
+          "street": streets[index],
+          "stand": stands[index],
+          "shelf": shelfs[index]
+        }
+      end
     end
-    pallets.each { |pallet| self.location["locations"] << pallet }
+    pallets.each do |pallet|
+      if pallet != ""
+        self.location["locations"] << { "pallet": pallet }
+      end
+    end
   end
 
   def can_create
