@@ -46,7 +46,7 @@ class Employee < ApplicationRecord
         permission = user.role.permissions
         quantity = Employee.where("user_id in (?)", [user.id] + user.user_ids).count
       end
-      if(permission["empoloyees"] >= quantity)
+      if(permission["empoloyees"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de auditores para o seu plano")
       end
     end

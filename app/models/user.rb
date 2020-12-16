@@ -48,12 +48,12 @@ class User < ActiveRecord::Base
     if user.role.description != "master"
       if user.role.description == "dependet"
         permission = user.user.role.permissions
-        quantity = User.where("user_id in (?)", [user.user.id] + user.user.user_ids).count
+        quantity = User.where("id in (?)", [user.user.id] + user.user.user_ids).count
       else
         permission = user.role.permissions
-        quantity = User.where("user_id in (?)", [user.id] + user.user_ids).count
+        quantity = User.where("id in (?)", [user.id] + user.user_ids).count
       end
-      if(permission["users"] >= quantity)
+      if(permission["users"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de usuários para o seu plano")
       end
     end

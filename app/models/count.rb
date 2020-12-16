@@ -442,7 +442,7 @@ class Count < ApplicationRecord
         permission = user.role.permissions
         quantity = Count.where("user_id in (?) and date >= ?", [user.id] + user.user_ids, DateTime.now.days_ago(30)).count
       end
-      if(permission["counts_per_mounth"] >= quantity)
+      if(permission["counts_per_mounth"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de contagens mensais para o seu plano")
       end
     end

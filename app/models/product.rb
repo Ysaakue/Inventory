@@ -85,7 +85,7 @@ class Product < ApplicationRecord
         permission = company.user.role.permissions
         quantity = User.where("user_id in (?)", Company.where("user_id in (?)", [company.user.id] + company.user.user_ids).ids).count
       end
-      if(permission["products"] >= quantity)
+      if(permission["products"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de produtos para o seu plano")
       end
     end

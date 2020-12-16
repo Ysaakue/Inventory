@@ -44,7 +44,7 @@ class Company < ApplicationRecord
         permission = user.role.permissions
         quantity = Company.where("user_id in (?)", [user.id] + user.user_ids).count
       end
-      if(permission["companies"] >= quantity)
+      if(permission["companies"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de empresas para o seu plano")
       end
     end
