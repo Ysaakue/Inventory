@@ -60,7 +60,7 @@ class UsersController < ApplicationController
   private
   def user_params
     params.require(:user).permit(
-      :email,:password,:password_confirmation,:role_id,:name,:suspend
+      :email,:password,:password_confirmation,:role_id,:name,:suspended
     )
   end
 

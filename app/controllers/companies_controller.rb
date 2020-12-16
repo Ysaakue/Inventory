@@ -1,6 +1,6 @@
 class CompaniesController < ApplicationController
   load_and_authorize_resource
-  before_action :set_company,only:[:update,:destroy,:grant_access,:suspend_access]
+  before_action :set_company,only:[:update,:destroy]
 
   def index
     if current_user.master?
