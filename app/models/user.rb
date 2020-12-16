@@ -40,6 +40,10 @@ class User < ActiveRecord::Base
     role.blank?? false : role.description == "master"
   end
 
+  def dependent?
+    role.blank?? false : role.description == "dependent"
+  end
+
   def can_create
     if user.role.description != "master"
       if user.role.description == "dependet"

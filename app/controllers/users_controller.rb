@@ -6,6 +6,8 @@ class UsersController < ApplicationController
   def index
     if current_user.master?
       @users = User.all
+    elsif current_user.dependent?
+      @users = current_user.user.users
     else
       @users = current_user.users
     end
@@ -18,9 +20,11 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-    @user.user = current_user
     if !current_user.master?
       @user.role = Role.find_by(description: "dependent")
+    end
+    if current_user.dependent?
+      @user.user = current_user.user
     end
     if @user.save
       render json: {
