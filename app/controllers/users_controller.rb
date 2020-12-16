@@ -25,6 +25,8 @@ class UsersController < ApplicationController
     end
     if current_user.dependent?
       @user.user = current_user.user
+    else
+      @user.user = current_user
     end
     if @user.save
       render json: {

@@ -24,7 +24,7 @@ class User < ActiveRecord::Base
       role: (role.blank?? "" : role.description),
       uid: uid,
       allow_password_change: allow_password_change,
-      first_access: (sign_in_count == 0),
+      first_access: (sign_in_count <= 1),
       suspended: suspended
     }
   end
