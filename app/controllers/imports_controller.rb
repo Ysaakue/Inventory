@@ -13,10 +13,9 @@ class ImportsController < ApplicationController
   end
 
   def create
-    @import = Import.new
-    @import.company_id = @company.id
+    @import = Import.new(import_params)
     @import.description = "Aguardando processamento"
-    @import.products = params[:products]
+    @import.products = params[:import][:products]
     if @import.save
       render json:{
         status: "success",
@@ -40,5 +39,6 @@ class ImportsController < ApplicationController
   end
 
   def import_params
+    params.require(:import).permit(:company_id)
   end
 end
