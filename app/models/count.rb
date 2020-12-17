@@ -435,7 +435,7 @@ class Count < ApplicationRecord
 
   def can_create
     if user.role.description != "master"
-      if user.role.description == "dependet"
+      if user.role.description == "dependent"
         permission = user.user.role.permissions
         quantity = Count.where("user_id in (?) and date >= ?", [user.user.id] + user.user.user_ids, DateTime.now.days_ago(30)).count
       else

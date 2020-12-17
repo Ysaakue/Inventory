@@ -78,7 +78,7 @@ class Product < ApplicationRecord
 
   def can_create
     if company.user.role.description != "master"
-      if company.user.role.description == "dependet"
+      if company.user.role.description == "dependent"
         permission = company.user.user.role.permissions
         quantity = Products.where("company_id in (?)", Company.where("user_id in (?)", [company.user.user.id] + company.user.user.user_ids).ids).count
       else

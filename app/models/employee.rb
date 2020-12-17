@@ -39,14 +39,14 @@ class Employee < ApplicationRecord
 
   def can_create
     if user.role.description != "master"
-      if user.role.description == "dependet"
+      if user.role.description == "dependent"
         permission = user.user.role.permissions
         quantity = Employee.where("user_id in (?)", [user.user.id] + user.user.user_ids).count
       else
         permission = user.role.permissions
         quantity = Employee.where("user_id in (?)", [user.id] + user.user_ids).count
       end
-      if(permission["empoloyees"] <= quantity)
+      if(permission["employees"] <= quantity)
         errors.add(:user, ", você atingiu a quantidade limite de auditores para o seu plano")
       end
     end

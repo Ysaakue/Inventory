@@ -37,7 +37,7 @@ class Company < ApplicationRecord
 
   def can_create
     if user.role.description != "master"
-      if user.role.description == "dependet"
+      if user.role.description == "dependent"
         permission = user.user.role.permissions
         quantity = Company.where("user_id in (?)", [user.user.id] + user.user.user_ids).count
       else
