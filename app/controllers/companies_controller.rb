@@ -6,7 +6,7 @@ class CompaniesController < ApplicationController
     if current_user.master?
       @companies = Company.all
     else
-      @companies = Company.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)])
+      @companies = Company.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)] + current_user.user_ids)
     end
     render json: @companies
   end
