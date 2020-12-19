@@ -16,7 +16,7 @@ class ImportsController < ApplicationController
     @import = Import.new
     @import.company_id = @company.id
     @import.description = "Aguardando processamento"
-    @import.products = params[:products]
+    @import.products = params[:import][:products]
     if @import.save
       render json:{
         status: "success",
