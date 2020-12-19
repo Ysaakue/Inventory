@@ -24,7 +24,6 @@ class ProductsController < ApplicationController
     if @product.location == nil
       @product.location = {}
     end
-    @product.company_id = params[:company_id]
     if @product.save
       render json:{
         status: "success",
@@ -90,8 +89,7 @@ class ProductsController < ApplicationController
   private
   def product_params
     params.require(:product).permit(
-      :active,:description,:code,:current_stock,:value,:unit_measurement
-      # location: [:street, :stand, :shelf]
+      :active,:description,:code,:current_stock,:value,:unit_measurement,:company_id
     )
   end
 

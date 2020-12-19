@@ -12,7 +12,7 @@ class CountsController < ApplicationController
     if current_user.master?
       @counts = Count.all
     else
-      @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)]).order(date: :desc, id: :desc)
+      @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)] + current_user.user_ids).order(date: :desc, id: :desc)
     end
     render json: @counts.as_json(index: true)
   end
