@@ -68,7 +68,7 @@ class ProductsController < ApplicationController
   def remove_location
     if @product.location["locations"].include? params["location"]
       @product.location["locations"].delete params["location"]
-      if product.save
+      if @product.save
         render json: {
           status: "success",
           data: @product
