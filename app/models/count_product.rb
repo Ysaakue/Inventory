@@ -3,6 +3,8 @@ class CountProduct < ApplicationRecord
   belongs_to :product
   has_many :results, class_name: 'Result'
 
+  validates :product_id, uniqueness: { scope: :count, message: "Um produto com esse código já foi cadastrado para essa contagem" }
+
   def calculate_attributes(update_count=true)
     accuracy = (self.results.order(:order).last.quantity_found*100)/self.product.current_stock
     if accuracy > 100
