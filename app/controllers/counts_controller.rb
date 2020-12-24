@@ -384,7 +384,7 @@ class CountsController < ApplicationController
     if status < 3
       status+=1
     end
-    if @count.divided && (status == 1 || status == 2)
+    if @count.divided
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
     else
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id}")
