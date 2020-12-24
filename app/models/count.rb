@@ -127,7 +127,7 @@ class Count < ApplicationRecord
       three = 0
       four = 0
       status = ""
-      self.counts_products.where(ignore: false).each do |cp|
+      self.counts_products.each do |cp|
         if !cp.combined_count?
           if cp.results.size == 1
             one+=1
@@ -306,7 +306,7 @@ class Count < ApplicationRecord
   end
 
   def calculate_accuracy
-    counts_products.where(ignore: false).each { |cp| cp.calculate_attributes_without_delay(false) }
+    counts_products.each { |cp| cp.calculate_attributes_without_delay(false) }
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
@@ -327,9 +327,9 @@ class Count < ApplicationRecord
   def calculate_final_value
     final_value = 0
     final_stock = 0
-    counts_products.where(ignore: false,combined_count: true).each do |cp|
+    counts_products.where(combined_count: true).each do |cp|
       final_value += cp.final_total_value
-      final_stock += cp.results.order(:order).last.quantity_found
+      final_stock += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
     end
     save(validate: false)
   end
@@ -337,7 +337,7 @@ class Count < ApplicationRecord
   def calculate_initial_value
     initial_value = 0
     initial_stock = 0
-    counts_products.where(ignore: false).each do |cp|
+    counts_products.each do |cp|
       initial_value += cp.product.value * cp.product.current_stock
       initial_stock += cp.product.current_stock
     end

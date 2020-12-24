@@ -401,6 +401,7 @@ class CountsController < ApplicationController
     @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
     @cp.ignore = true
     @cp.justification = params[:justification]
+    @cp.combined_count = true
     if @cp.save
       @cp.reset_results
       @count.delay.calculate_initial_value
@@ -414,7 +415,7 @@ class CountsController < ApplicationController
       }
     else
       render json:{
-        status: "errors",
+        status: "error",
         message: @cp.errors.full_messages
       }, status: 400
     end
