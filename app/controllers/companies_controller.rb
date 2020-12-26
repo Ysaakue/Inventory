@@ -49,10 +49,17 @@ class CompaniesController < ApplicationController
   end
   
   def destroy
-    if @company.destroy
-      render json: { status: "success"}, status: 202
+    if current_user.valid_password?(params[:password])
+      if @company.destroy
+        render json: { status: "success"}, status: 202
+      else
+        render json: { status: "error"}, status: 400
+      end
     else
-      render json: { status: "error"}, status: 400
+      render json:{
+        status: "error",
+        message: ["Senha inválida."]
+      }, status: 400
     end
   end
 
