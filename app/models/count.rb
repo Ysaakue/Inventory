@@ -305,17 +305,16 @@ class Count < ApplicationRecord
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
-    accuracy_by_stock_ = ((self.final_stock)*100)/(self.initial_stock)
     if accuracy_ > 100
       difference = accuracy_ - 100
       accuracy_ = 100 - difference
     end
-    if accuracy_by_stock_ > 100
-      difference = accuracy_by_stock_ - 100
-      accuracy_by_stock_ = 100 - difference
-    end
     self.accuracy = accuracy_
-    self.accuracy_by_stock = accuracy_by_stock_
+    accuracy_by_stock_ = 0
+    count_products.each do |cp|
+      accuracy_by_stock_ += cp.percentage_result
+    end
+    self.accuracy_by_stock = accuracy_by_stock_ / count_products.size
     self.save(validate: false)
   end
 
