@@ -179,11 +179,7 @@ class Count < ApplicationRecord
         self.save(validate: false)
         status = self.status
       elsif status_before == "third_count" && three == 0
-        if four != 0
-          self.status = "fourth_count_pending"
-        else
-          self.status = "completed"
-        end
+        self.status = "completed"
         self.save(validate: false)
         status = self.status
       elsif status_before == "fourth_count" && four == 0
@@ -217,8 +213,7 @@ class Count < ApplicationRecord
     self.status = "calculating"
     self.save(validate: false)
     if fourth_count_released?
-      cps = counts_products.where("combined_count = false")
-      cps.each do |cp|
+      counts_products.where("combined_count = false").each do |cp|
         if cp.results.size == 3
           Result.new(
             count_product_id: cp.id,
@@ -371,8 +366,7 @@ class Count < ApplicationRecord
     self.status = "calculating"
     self.save(validate: false)
     CountProduct.question_result(ids)
-    cps = counts_products.where("combined_count = false")
-    cps.each do |cp|
+    counts_products.where("combined_count = false").each do |cp|
       if cp.results.size <= 3
         Result.new(
           count_product_id: cp.id,
@@ -382,6 +376,16 @@ class Count < ApplicationRecord
         r = cp.results.order(:order).last
         r.quantity_found = -1
         r.save
+        if !cp.product.location.blank? && !cp.product.location["step"].blank?
+          product = cp.product
+          product.location.delete("step")
+          product.save
+        end
+        if !cp.product.location.blank? && !cp.product.location["counted_on_step"].blank?
+          product = cp.product
+          product.location.delete("counted_on_step")
+          product.save
+        end
       end
     end
     self.status = "fourth_count"

@@ -319,19 +319,26 @@ class CountsController < ApplicationController
   end
 
   def question_results
-    @count.fourth_count_released = true
-    @count.employee_ids << params[:employee_id]
-    @count.fourth_count_employee = params[:employee_id]
-    if @count.save(validate: false)
-      render json:{
-        status: "success",
-        data: @count
-      }
-      @count.question_result(params[:products_ids])
+    if @counts.completed?
+      @count.fourth_count_released = true
+      @count.employee_ids << params[:employee_id]
+      @count.fourth_count_employee = params[:employee_id]
+      if @count.save(validate: false)
+        render json:{
+          status: "success",
+          data: @count
+        }
+        @count.question_result(params[:products_ids])
+      else
+        render json:{
+          status: "error",
+          message: @count.errors.full_messages
+        }, status: 400
+      end
     else
       render json:{
         status: "error",
-        message: @count.errors.full_messages
+        message: ["Para realizar a auditoria programada de uma contagem é preciso que ela tenha sido concluida."]
       }, status: 400
     end
   end
