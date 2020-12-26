@@ -253,8 +253,8 @@ class Count < ApplicationRecord
         row << cp.product.code #COD
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
-        row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
-        row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
+        row << (cp.product.value.gsub! '.',',') #VLR UNIT
+        row << (cp.total_value.gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
         row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
@@ -281,8 +281,8 @@ class Count < ApplicationRecord
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
         row << pallets.join(',') #PALLETS
-        row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
-        row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+        row << (cp.final_total_value.gsub! '.',',') #VLR TOTAL FINAL
+        row << cp.percentage_result_value #RESULTADO VLR %
         row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
