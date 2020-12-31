@@ -326,7 +326,7 @@ class CountsController < ApplicationController
   end
 
   def question_results
-    if @counts.completed?
+    if @count.completed?
       @count.fourth_count_released = true
       @count.employee_ids << params[:employee_id]
       @count.fourth_count_employee = params[:employee_id]
@@ -451,9 +451,8 @@ class CountsController < ApplicationController
   end
 
   def products_simplified
-    products = @count.products.where(combined_count: false)
     render json:{
-      products: products.as_json(simple: true)
+      products: @count.counts_products.where("ignore = false").as_json(fake_product: true)
     }
   end
 

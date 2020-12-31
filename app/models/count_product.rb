@@ -25,8 +25,12 @@ class CountProduct < ApplicationRecord
   end
 
   def as_json options={}
-    simple = if options && options.key?(:simple)
-      options[:simple]
+    if options   
+      if options.key?(:fake_product)
+        fake_product = options[:fake_product]
+      elsif options.key?(:simple)
+        simple = options[:simple]
+      end
     end
     if simple
       {
@@ -35,6 +39,13 @@ class CountProduct < ApplicationRecord
         product_description: product.description,
         location_data: product.location,
         product_unit_measurement: product.unit_measurement,
+      }
+    elsif fake_product
+      {
+        id: product.id,
+        code: product.code,
+        description: product.description,
+        unit_measurement: product.unit_measurement
       }
     else
       {
