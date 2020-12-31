@@ -19,9 +19,8 @@ class CountProduct < ApplicationRecord
       @count = self.count
       @count.final_value += self.final_total_value
       @count.final_stock += (self.results.blank?? 0 : self.results.order(:order).last.quantity_found)
-      @count.accuracy = ((@count.final_value)*100)/(@count.initial_value)
-      @count.accuracy_by_stock = (@count.final_stock * 100)/@count.initial_stock
       @count.save(validate: false)
+      @count.calculate_accuracy
     end
   end
 

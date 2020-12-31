@@ -366,20 +366,22 @@ class Count < ApplicationRecord
     end
     self.accuracy = accuracy_
     accuracy_by_stock_ = 0
-    count_products.each do |cp|
+    counts_products.each do |cp|
       accuracy_by_stock_ += cp.percentage_result
     end
-    self.accuracy_by_stock = accuracy_by_stock_ / count_products.size
+    self.accuracy_by_stock = accuracy_by_stock_ / counts_products.size
     self.save(validate: false)
   end
 
   def calculate_final_value
-    final_value = 0
-    final_stock = 0
+    final_value_ = 0
+    final_stock_ = 0
     counts_products.where(combined_count: true).each do |cp|
-      final_value += cp.final_total_value
-      final_stock += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
+      final_value_ += cp.final_total_value
+      final_stock_ += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
     end
+    self.final_value = final_value_
+    self.final_stock = final_stock_
     save(validate: false)
   end
 
