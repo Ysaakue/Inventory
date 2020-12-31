@@ -193,10 +193,17 @@ class CountsController < ApplicationController
   end
   
   def destroy
-    if @count.destroy
-      render json:{status: "success"}, status: 202
+    if current_user.valid_password?(params[:password])
+      if @count.destroy
+        render json:{status: "success"}, status: 202
+      else
+        render json:{status: "error"}, status: 400
+      end
     else
-      render json:{status: "error"}, status: 400
+      render json:{
+        status: "error",
+        message: ["Senha inválida."]
+      }, status: 400
     end
   end
 
@@ -319,19 +326,26 @@ class CountsController < ApplicationController
   end
 
   def question_results
-    @count.fourth_count_released = true
-    @count.employee_ids << params[:employee_id]
-    @count.fourth_count_employee = params[:employee_id]
-    if @count.save(validate: false)
-      render json:{
-        status: "success",
-        data: @count
-      }
-      @count.question_result(params[:products_ids])
+    if @count.completed?
+      @count.fourth_count_released = true
+      @count.employee_ids << params[:employee_id]
+      @count.fourth_count_employee = params[:employee_id]
+      if @count.save(validate: false)
+        render json:{
+          status: "success",
+          data: @count
+        }
+        @count.question_result(params[:products_ids])
+      else
+        render json:{
+          status: "error",
+          message: @count.errors.full_messages
+        }, status: 400
+      end
     else
       render json:{
         status: "error",
-        message: @count.errors.full_messages
+        message: ["Para realizar a auditoria programada de uma contagem é preciso que ela tenha sido concluida."]
       }, status: 400
     end
   end
@@ -351,19 +365,27 @@ class CountsController < ApplicationController
   end
   
   def report_download
-    respond_to do |format|
-      format.csv do
-        @report = @count.reports.find_by(content_type: "csv")
-        send_data(
-          @report.file_contents,
-          type: @report.content_type,
-          filename: @report.filename
-        )
-      end
-      format.pdf do
-        pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
-        pdf = WickedPdf.new.pdf_from_string(pdf_html)
-        send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+    if params[:format] == "xlsx"
+      send_data(
+        @count.to_xlsx.to_stream.read,
+        type: "xlsx",
+        filename: "relatorio_contagem_#{(!(@count.company.fantasy_name.include? " ") == false)? (@count.company.fantasy_name.gsub! " ", "_") : (@count.company.fantasy_name)}_#{@count.date.strftime("%d-%m-%Y")}.xlsx"
+      )
+    else
+      respond_to do |format|
+        format.csv do
+          @report = @count.reports.find_by(content_type: "csv")
+          send_data(
+            @report.file_contents,
+            type: @report.content_type,
+            filename: @report.filename
+          )
+        end
+        format.pdf do
+          pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
+          pdf = WickedPdf.new.pdf_from_string(pdf_html)
+          send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+        end
       end
     end
   end
@@ -384,7 +406,7 @@ class CountsController < ApplicationController
     if status < 3
       status+=1
     end
-    if @count.divided && (status == 1 || status == 2)
+    if @count.divided
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
     else
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id}")
@@ -401,6 +423,7 @@ class CountsController < ApplicationController
     @cp = CountProduct.find_by(product_id: params[:product_id],count_id: @count.id)
     @cp.ignore = true
     @cp.justification = params[:justification]
+    @cp.combined_count = true
     if @cp.save
       @cp.reset_results
       @count.delay.calculate_initial_value
@@ -414,7 +437,7 @@ class CountsController < ApplicationController
       }
     else
       render json:{
-        status: "errors",
+        status: "error",
         message: @cp.errors.full_messages
       }, status: 400
     end
@@ -428,9 +451,8 @@ class CountsController < ApplicationController
   end
 
   def products_simplified
-    products = @count.products.where(combined_count: false)
     render json:{
-      products: products.as_json(simple: true)
+      products: @count.counts_products.where("ignore = false").as_json(fake_product: true)
     }
   end
 
@@ -480,10 +502,10 @@ class CountsController < ApplicationController
       average_accuracy = 0
       counts.each do |count|
         company_date << "#{count.company.fantasy_name} - #{count.date}"
-        accuracy << (('%.2f' % count.accuracy).gsub! '.',',')
+        accuracy << (count.accuracy.gsub! '.',',')
         average_accuracy += count.accuracy
-        initial_value << (('%.2f' % count.initial_value).gsub! '.',',')
-        final_value << (('%.2f' % count.final_value).gsub! '.',',')
+        initial_value << (count.initial_value.gsub! '.',',')
+        final_value << (count.final_value.gsub! '.',',')
         row = []
         row << count.date #DATA
         count.counts_products.each do |cp|
@@ -491,8 +513,8 @@ class CountsController < ApplicationController
           row << cp.product.code #COD
           row << cp.product.description #MATERIAL
           row << cp.product.unit_measurement #UND
-          row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
-          row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
+          row << (cp.product.value.gsub! '.',',') #VLR UNIT
+          row << (cp.total_value.gsub! '.',',') #VLRT TOTAL
           row << cp.product.current_stock #SALDO INICIAL
           row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
           row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
@@ -519,8 +541,8 @@ class CountsController < ApplicationController
           row << stands.join(',') #ESTANTE
           row << shelfs.join(',') #PRATELEIRA
           row << pallets.join(',') #PALLETS
-          row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
-          row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+          row << (cp.final_total_value.gsub! '.',',') #VLR TOTAL FINAL
+          row << cp.percentage_result_value #RESULTADO VLR %
           row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
           csv << row
           row = [""]
@@ -532,7 +554,7 @@ class CountsController < ApplicationController
       csv << ["Valor Resultado"] + final_value
       csv << ["Acuracidade"] + accuracy
       csv << []
-      csv << ["Acuracidade média:", (('%.2f' % (average_accuracy / counts.size)).gsub! '.',',')] 
+      csv << ["Acuracidade média:", ((average_accuracy / counts.size).gsub! '.',',')] 
     end
     send_data(
       merge,

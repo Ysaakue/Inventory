@@ -27,7 +27,8 @@ class Product < ApplicationRecord
       {
         id: id,
         code: code,
-        description: description
+        description: description,
+        unit_measurement: unit_measurement
       }
     else
       {

@@ -3,29 +3,34 @@ class CountProduct < ApplicationRecord
   belongs_to :product
   has_many :results, class_name: 'Result'
 
+  validates :product_id, uniqueness: { scope: :count, message: "Um produto com esse código já foi cadastrado para essa contagem" }
+
   def calculate_attributes(update_count=true)
-    accuracy = (self.results.order(:order).last.quantity_found*100)/self.product.current_stock
+    accuracy = ((self.results.blank?? 0 : self.results.order(:order).last.quantity_found)*100)/self.product.current_stock
     if accuracy > 100
       difference = accuracy - 100
       accuracy = 100 - difference
     end
     self.percentage_result = accuracy
-    self.final_total_value = self.results.order(:order).last.quantity_found * self.product.value
-    self.percentage_result_value = ((self.results.order(:order).last.quantity_found * self.product.value)*100)/(self.product.current_stock * self.product.value)
+    self.final_total_value = (self.results.blank?? 0 : self.results.order(:order).last.quantity_found) * self.product.value
+    self.percentage_result_value = (((self.results.blank?? 0 : self.results.order(:order).last.quantity_found) * self.product.value)*100)/(self.product.current_stock * self.product.value)
     self.save(validate: false)
     if update_count
       @count = self.count
       @count.final_value += self.final_total_value
-      @count.final_stock += self.results.order(:order).last.quantity_found
-      @count.accuracy = ((@count.final_value)*100)/(@count.initial_value)
-      @count.accuracy_by_stock = (@count.final_stock * 100)/@count.initial_stock
+      @count.final_stock += (self.results.blank?? 0 : self.results.order(:order).last.quantity_found)
       @count.save(validate: false)
+      @count.calculate_accuracy
     end
   end
 
   def as_json options={}
-    simple = if options && options.key?(:simple)
-      options[:simple]
+    if options   
+      if options.key?(:fake_product)
+        fake_product = options[:fake_product]
+      elsif options.key?(:simple)
+        simple = options[:simple]
+      end
     end
     if simple
       {
@@ -33,6 +38,14 @@ class CountProduct < ApplicationRecord
         product_code: product.code,
         product_description: product.description,
         location_data: product.location,
+        product_unit_measurement: product.unit_measurement,
+      }
+    elsif fake_product
+      {
+        id: product.id,
+        code: product.code,
+        description: product.description,
+        unit_measurement: product.unit_measurement
       }
     else
       {

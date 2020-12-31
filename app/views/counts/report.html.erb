@@ -152,7 +152,7 @@
           <h2><%= cp.product.code %> - <%= cp.product.description %></h2>
           <div class="row">
             <div class="item-produto">
-              <h3>Valor unitário</h3> R$ <%= (('%.2f' % cp.product.value).gsub! '.',',') %>
+              <h3>Valor unitário</h3> R$ <%= (cp.product.value.gsub! '.',',') %>
             </div>  
             
             <div class="item-produto">
@@ -160,7 +160,7 @@
             </div>
             
             <div class="item-produto">
-              <h3>Valor total</h3> R$ <%= (('%.2f' % cp.total_value).gsub! '.',',') %>
+              <h3>Valor total</h3> R$ <%= (cp.total_value.gsub! '.',',') %>
             </div>
           </div>
           
@@ -236,11 +236,11 @@
         <h2>Resultado final da contagem</h2>
         <div class="row">
           <div class="item-medium">
-            <h3>Valor inicial inventário</h3> R$ <%= (('%.2f' % count.initial_value).gsub! '.',',') %>
+            <h3>Valor inicial inventário</h3> R$ <%= (count.initial_value.gsub! '.',',') %>
           </div>  
           
           <div class="item-medium">
-            <h3>Valor final inventário</h3> R$ <%= (('%.2f' % count.final_value).gsub! '.',',') %>
+            <h3>Valor final inventário</h3> R$ <%= (count.final_value.gsub! '.',',') %>
           </div>
           
           <div class="item-medium">

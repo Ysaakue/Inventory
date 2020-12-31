@@ -91,8 +91,12 @@ class Count < ApplicationRecord
     end
     initial_value = 0
     temp_products.each do |product|
-      product.location.delete("step")
-      product.location.delete("counted_on_step")
+      if !product.location.blank? && !product.location["step"].blank?
+        product.location.delete("step")
+      end
+      if !product.location.blank? && !product.location["counted_on_step"].blank?
+        product.location.delete("counted_on_step")
+      end
       product.save
       total_value = product.value * product.current_stock
       cp = CountProduct.new(
@@ -123,7 +127,7 @@ class Count < ApplicationRecord
       three = 0
       four = 0
       status = ""
-      self.counts_products.where(ignore: false).each do |cp|
+      self.counts_products.each do |cp|
         if !cp.combined_count?
           if cp.results.size == 1
             one+=1
@@ -175,11 +179,7 @@ class Count < ApplicationRecord
         self.save(validate: false)
         status = self.status
       elsif status_before == "third_count" && three == 0
-        if four != 0
-          self.status = "fourth_count_pending"
-        else
-          self.status = "completed"
-        end
+        self.status = "completed"
         self.save(validate: false)
         status = self.status
       elsif status_before == "fourth_count" && four == 0
@@ -213,8 +213,7 @@ class Count < ApplicationRecord
     self.status = "calculating"
     self.save(validate: false)
     if fourth_count_released?
-      cps = counts_products.where("combined_count = false")
-      cps.each do |cp|
+      counts_products.where("combined_count = false").each do |cp|
         if cp.results.size == 3
           Result.new(
             count_product_id: cp.id,
@@ -254,8 +253,8 @@ class Count < ApplicationRecord
         row << cp.product.code #COD
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
-        row << (('%.2f' % cp.product.value).gsub! '.',',') #VLR UNIT
-        row << (('%.2f' % cp.total_value).gsub! '.',',') #VLRT TOTAL
+        row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
+        row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
         row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
@@ -282,12 +281,67 @@ class Count < ApplicationRecord
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
         row << pallets.join(',') #PALLETS
-        row << (('%.2f' % cp.final_total_value).gsub! '.',',') #VLR TOTAL FINAL
-        row << ('%.2f' % cp.percentage_result_value) #RESULTADO VLR %
+        row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
+        row << cp.percentage_result_value #RESULTADO VLR %
         row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
     end
+  end
+
+  def to_xlsx
+    p = Axlsx::Package.new
+    wb = p.workbook
+
+    wb.add_worksheet(:name => "Pessoas") do |sheet|
+      sheet.add_row [
+        "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+        "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+      ]
+      
+      self.counts_products.each do |cp|
+        row = []
+        row << cp.count.company.fantasy_name #EMPRESA
+        row << cp.product.code #COD
+        row << cp.product.description #MATERIAL
+        row << cp.product.unit_measurement #UND
+        row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
+        row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
+        row << cp.product.current_stock #SALDO INICIAL
+        row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
+        row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
+        row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
+        row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+        row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
+        row << cp.percentage_result #RESULTADO %
+        streets = []
+        stands  = []
+        shelfs  = []
+        pallets  = []
+        if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+          cp.product.location["locations"].each do |location|
+            if location.keys.include? "pallet"
+              pallets << location["pallet"]
+            else
+              streets << location["street"]
+              stands  << location["stand"]
+              shelfs  << location["shelf"]
+            end
+          end
+        end
+        row << streets.join(',') #RUA
+        row << stands.join(',') #ESTANTE
+        row << shelfs.join(',') #PRATELEIRA
+        row << pallets.join(',') #PALLETS
+        row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
+        row << cp.percentage_result_value #RESULTADO VLR %
+        row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+        sheet.add_row row
+      end
+    end
+
+    return p
   end
   
   def build_csv_enumerator
@@ -302,46 +356,46 @@ class Count < ApplicationRecord
   end
 
   def calculate_accuracy
-    counts_products.where(ignore: false).each { |cp| cp.calculate_attributes_without_delay(false) }
+    counts_products.each { |cp| cp.calculate_attributes_without_delay(false) }
     self.calculate_initial_value
     self.calculate_final_value
     accuracy_ = ((self.final_value)*100)/(self.initial_value)
-    accuracy_by_stock_ = ((self.final_stock)*100)/(self.initial_stock)
     if accuracy_ > 100
       difference = accuracy_ - 100
       accuracy_ = 100 - difference
     end
-    if accuracy_by_stock_ > 100
-      difference = accuracy_by_stock_ - 100
-      accuracy_by_stock_ = 100 - difference
-    end
     self.accuracy = accuracy_
-    self.accuracy_by_stock = accuracy_by_stock_
+    accuracy_by_stock_ = 0
+    counts_products.each do |cp|
+      accuracy_by_stock_ += cp.percentage_result
+    end
+    self.accuracy_by_stock = accuracy_by_stock_ / counts_products.size
     self.save(validate: false)
   end
 
   def calculate_final_value
-    final_value = 0
-    final_stock = 0
-    counts_products.where(ignore: false,combined_count: true).each do |cp|
-      final_value += cp.final_total_value
-      final_stock += cp.results.order(:order).last.quantity_found
+    final_value_ = 0
+    final_stock_ = 0
+    counts_products.where(combined_count: true).each do |cp|
+      final_value_ += cp.final_total_value
+      final_stock_ += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
     end
+    self.final_value = final_value_
+    self.final_stock = final_stock_
     save(validate: false)
   end
 
   def calculate_initial_value
     initial_value = 0
     initial_stock = 0
-    counts_products.where(ignore: false).each do |cp|
+    counts_products.each do |cp|
       initial_value += cp.product.value * cp.product.current_stock
       initial_stock += cp.product.current_stock
     end
     save(validate: false)
   end
 
-  def generate_report(content_type)
-    content_type ||= "csv"
+  def generate_report(content_type = "xlsx")
     @report = reports.find_by(content_type: content_type)
     if !@report.present?
       @report = Report.new
@@ -355,11 +409,12 @@ class Count < ApplicationRecord
       if content_type == "pdf"
         pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: self})
         @report.file_contents = WickedPdf.new.pdf_from_string(pdf_html)
+      elsif content_type == "xlsx"
+        @report.file_contents = self.to_xlsx
       else
         @report.file_contents = Count.to_csv(self)
       end
-      @report.status = "completed"
-      @report.save!
+      @report.completed!
     end
   end
 
@@ -367,8 +422,7 @@ class Count < ApplicationRecord
     self.status = "calculating"
     self.save(validate: false)
     CountProduct.question_result(ids)
-    cps = counts_products.where("combined_count = false")
-    cps.each do |cp|
+    counts_products.where("combined_count = false").each do |cp|
       if cp.results.size <= 3
         Result.new(
           count_product_id: cp.id,
@@ -378,6 +432,16 @@ class Count < ApplicationRecord
         r = cp.results.order(:order).last
         r.quantity_found = -1
         r.save
+        if !cp.product.location.blank? && !cp.product.location["step"].blank?
+          product = cp.product
+          product.location.delete("step")
+          product.save
+        end
+        if !cp.product.location.blank? && !cp.product.location["counted_on_step"].blank?
+          product = cp.product
+          product.location.delete("counted_on_step")
+          product.save
+        end
       end
     end
     self.status = "fourth_count"
@@ -389,11 +453,9 @@ class Count < ApplicationRecord
     employees_ = self.counts_employees
     module_ = (ids_.size % employees_.size) - 1
     each_ = ids_.size / employees_.size
+    end_ = -1
     employees_.each_with_index do |ce,index|
-      start_ = index * each_
-      if (index <= module_ + 1) && index > 0
-        start_+=1
-      end
+      start_ = end_ + 1
       end_ = start_ + each_ - 1
       if index <= module_
         end_+=1
@@ -418,7 +480,7 @@ class Count < ApplicationRecord
   def delegate_employee_to_third_count
     counts_employees.shuffle.each_with_index do |x,index| 
       if index == 0
-        x.products["products"] = counts_products.where('combined_count = false').each { |cp| cp.product_id }
+        x.products["products"] = counts_products.where('combined_count = false').map { |cp| cp.product_id }
       else
         x.products["products"] = []
       end

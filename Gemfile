@@ -61,3 +61,6 @@ gem 'wicked_pdf'
 
 # Use redis to publish count status to subscribes of node server
 gem 'redis'
+
+# Generate xlsx files
+gem 'axlsx'

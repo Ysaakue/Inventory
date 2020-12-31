@@ -13,21 +13,13 @@ class Result < ApplicationRecord
       if  count_product.results.order(:order)[0].quantity_found != -1 &&
           count_product.results.order(:order)[1].quantity_found != -1 &&
           (
-            (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size == 1
-            ) || (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size > 1 &&
-              !count_product.product.location["counted_on_step"].blank? &&
-              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
-            )
+            !count_product.product.location["locations"].blank? &&
+            !count_product.product.location["counted_on_step"].blank? &&
+            count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
           )
         if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found ||
-            (
-              count_product.results.order(:order)[0].quantity_found == count_product.results.order(:order)[1].quantity_found &&
-              count_product.results.order(:order)[1].quantity_found != count_product.product.current_stock
-            )
+            count_product.results.order(:order)[0].quantity_found != count_product.product.current_stock ||
+            count_product.results.order(:order)[1].quantity_found != count_product.product.current_stock
           Result.new(
             count_product_id: count_product.id,
             order: 3,
@@ -41,50 +33,22 @@ class Result < ApplicationRecord
     elsif count_product.results.size == 3 &&
           count_product.results.order(:order)[2].quantity_found != -1 &&
           (
-            (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size == 1
-            ) || (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size > 1 &&
-              !count_product.product.location["counted_on_step"].blank? &&
-              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
-            )
+            !count_product.product.location["locations"].blank? &&
+            !count_product.product.location["counted_on_step"].blank? &&
+            count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
           )
-      if  count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[1].quantity_found &&
-          count_product.results.order(:order)[2].quantity_found != count_product.results.order(:order)[1].quantity_found &&
-          count_product.results.order(:order)[0].quantity_found != count_product.results.order(:order)[2].quantity_found ||
-          (
-            count_product.results.order(:order)[1].quantity_found == count_product.results.order(:order)[2].quantity_found &&
-            count_product.results.order(:order)[2].quantity_found != count_product.product.current_stock
-          )
-        Result.new(
-          count_product_id: count_product.id,
-          order: 4,
-        ).save!
-      else
-        count_product.combined_count = true
-        count_product.save
-        count_product.calculate_attributes
-      end
+      count_product.combined_count = true
+      count_product.save
+      count_product.calculate_attributes
     elsif count_product.results.order(:order)[3].quantity_found != -1 &&
           (
-            (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size == 1
-            ) || (
-              !count_product.product.location["locations"].blank? &&
-              count_product.product.location["locations"].size > 1 &&
-              !count_product.product.location["counted_on_step"].blank? &&
-              count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
-            )
+            !count_product.product.location["locations"].blank? &&
+            !count_product.product.location["counted_on_step"].blank? &&
+            count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
           )
       count_product.combined_count = true
       count_product.save!
       count_product.calculate_attributes
-    end
-    if !count_product.count.first_count?
-      count_product.count.verify_count
     end
   end
 
