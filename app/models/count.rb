@@ -253,8 +253,8 @@ class Count < ApplicationRecord
         row << cp.product.code #COD
         row << cp.product.description #MATERIAL
         row << cp.product.unit_measurement #UND
-        row << (cp.product.value.gsub! '.',',') #VLR UNIT
-        row << (cp.total_value.gsub! '.',',') #VLRT TOTAL
+        row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
+        row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
         row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
         row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
@@ -281,12 +281,67 @@ class Count < ApplicationRecord
         row << stands.join(',') #ESTANTE
         row << shelfs.join(',') #PRATELEIRA
         row << pallets.join(',') #PALLETS
-        row << (cp.final_total_value.gsub! '.',',') #VLR TOTAL FINAL
+        row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
         row << cp.percentage_result_value #RESULTADO VLR %
         row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
         csv << row
       end
     end
+  end
+  
+  def to_xlsx
+    p = Axlsx::Package.new
+    wb = p.workbook
+
+    wb.add_worksheet(:name => "Pessoas") do |sheet|
+      sheet.add_row [
+        "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
+        "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
+        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+      ]
+      
+      self.counts_products.each do |cp|
+        row = []
+        row << cp.count.company.fantasy_name #EMPRESA
+        row << cp.product.code #COD
+        row << cp.product.description #MATERIAL
+        row << cp.product.unit_measurement #UND
+        row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
+        row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
+        row << cp.product.current_stock #SALDO INICIAL
+        row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
+        row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
+        row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
+        row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+        row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
+        row << cp.percentage_result #RESULTADO %
+        streets = []
+        stands  = []
+        shelfs  = []
+        pallets  = []
+        if !cp.product.location.blank? && !cp.product.location["locations"].blank?
+          cp.product.location["locations"].each do |location|
+            if location.keys.include? "pallet"
+              pallets << location["pallet"]
+            else
+              streets << location["street"]
+              stands  << location["stand"]
+              shelfs  << location["shelf"]
+            end
+          end
+        end
+        row << streets.join(',') #RUA
+        row << stands.join(',') #ESTANTE
+        row << shelfs.join(',') #PRATELEIRA
+        row << pallets.join(',') #PALLETS
+        row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
+        row << cp.percentage_result_value #RESULTADO VLR %
+        row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+        sheet.add_row row
+      end
+    end
+
+    return p
   end
   
   def build_csv_enumerator
@@ -338,8 +393,7 @@ class Count < ApplicationRecord
     save(validate: false)
   end
 
-  def generate_report(content_type)
-    content_type ||= "csv"
+  def generate_report(content_type = "xlsx")
     @report = reports.find_by(content_type: content_type)
     if !@report.present?
       @report = Report.new
@@ -353,11 +407,12 @@ class Count < ApplicationRecord
       if content_type == "pdf"
         pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: self})
         @report.file_contents = WickedPdf.new.pdf_from_string(pdf_html)
+      elsif content_type == "xlsx"
+        @report.file_contents = self.to_xlsx
       else
         @report.file_contents = Count.to_csv(self)
       end
-      @report.status = "completed"
-      @report.save!
+      @report.completed!
     end
   end
 

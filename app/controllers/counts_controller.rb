@@ -365,19 +365,27 @@ class CountsController < ApplicationController
   end
   
   def report_download
-    respond_to do |format|
-      format.csv do
-        @report = @count.reports.find_by(content_type: "csv")
-        send_data(
-          @report.file_contents,
-          type: @report.content_type,
-          filename: @report.filename
-        )
-      end
-      format.pdf do
-        pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
-        pdf = WickedPdf.new.pdf_from_string(pdf_html)
-        send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+    if params[:format] == "xlsx"
+      send_data(
+        @count.to_xlsx.to_stream.read,
+        type: "xlsx",
+        filename: "relatorio_contagem_#{(!(@count.company.fantasy_name.include? " ") == false)? (@count.company.fantasy_name.gsub! " ", "_") : (@count.company.fantasy_name)}_#{@count.date.strftime("%d-%m-%Y")}.xlsx"
+      )
+    else
+      respond_to do |format|
+        format.csv do
+          @report = @count.reports.find_by(content_type: "csv")
+          send_data(
+            @report.file_contents,
+            type: @report.content_type,
+            filename: @report.filename
+          )
+        end
+        format.pdf do
+          pdf_html = ActionController::Base.new.render_to_string(template: 'counts/report.html.erb',:locals => {count: @count})
+          pdf = WickedPdf.new.pdf_from_string(pdf_html)
+          send_data pdf, filename: "relatorio_contagem_#{@count.company.fantasy_name.gsub! " ", "_"}_#{@count.date}.pdf"
+        end
       end
     end
   end
