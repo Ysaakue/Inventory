@@ -35,6 +35,7 @@ class CountProduct < ApplicationRecord
         product_code: product.code,
         product_description: product.description,
         location_data: product.location,
+        product_unit_measurement: product.unit_measurement,
       }
     else
       {
