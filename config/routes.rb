@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       post ':id/verify_count',                  to: 'counts#verify_count'
       post ':id/set_nonconformity',             to: 'counts#set_nonconformity'
       post ':id/finish_count',                  to: 'counts#finish_count'
+      post ':id/set_employees_to_third_count',  to: 'counts#set_employees_to_third_count'
     end
   end
   resources :products, only: [] do

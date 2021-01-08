@@ -5,7 +5,8 @@ class CountsController < ApplicationController
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
     :report_data,:pending_products,:question_results,:ignore_product,
-    :divide_products,:verify_count,:set_nonconformity,:finish_count
+    :divide_products,:verify_count,:set_nonconformity,:finish_count,
+    :set_employees_to_third_count
   ]
 
   def index
@@ -441,6 +442,11 @@ class CountsController < ApplicationController
     render json:{
       status: "success"
     }
+  end
+
+  def set_employees_to_third_count
+    CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
+    render json: { status: "success" }
   end
 
   def products_simplified

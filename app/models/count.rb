@@ -170,9 +170,6 @@ class Count < ApplicationRecord
       elsif status_before == "second_count" && two == 0
         if three != 0
           self.status = "third_count"
-          if self.divided?
-            self.delegate_employee_to_third_count
-          end
         else
           self.status = "completed"
         end
@@ -478,13 +475,23 @@ class Count < ApplicationRecord
   end
 
   def delegate_employee_to_third_count
-    counts_employees.shuffle.each_with_index do |x,index| 
-      if index == 0
-        x.products["products"] = counts_products.where('combined_count = false').map { |cp| cp.product_id }
-      else
-        x.products["products"] = []
+    ids_ = counts_products.where('combined_count = false').map { |cp| cp.product_id }
+    self.counts_employees.each do |ce|
+      ce.products = {"products": []}
+      ce.save
+    end
+    employees_ = counts_employees.where("in_third_count = true")
+    module_ = (ids_.size % employees_.size) - 1
+    each_ = ids_.size / employees_.size
+    end_ = -1
+    employees_.each_with_index do |ce,index|
+      start_ = end_ + 1
+      end_ = start_ + each_ - 1
+      if index <= module_
+        end_+=1
       end
-      x.save
+      ce.products = {"products": ids_[start_..end_]}
+      ce.save
     end
   end
 
