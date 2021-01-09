@@ -99,6 +99,7 @@ class CountsController < ApplicationController
       end
       left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,status).size
     end
+    begin
     render json: {
       count: {
         id: @count.id,
@@ -114,9 +115,30 @@ class CountsController < ApplicationController
         already_counted: (@count.counts_products.where("ignore = false").size - left_count),
         left_count: left_count,
         quantity_ignored: @count.counts_products.where("ignore = true").size,
-        employees: @count.employees,
+          employees: @count.employees
+        }
       }
-    }
+    rescue
+      CountEmployee.connection
+      render json: {
+        count: {
+          id: @count.id,
+          date: @count.date,
+          goal: @count.goal,
+          status: @count.status,
+          report_csv_status: (file.present?? file.status : "nonexistent"),
+          company: @count.company.fantasy_name,
+          initial_value: @count.initial_value,
+          final_value: @count.final_value,
+          accuracy: @count.accuracy,
+          accuracy_by_stock: @count.accuracy_by_stock,
+          already_counted: (@count.counts_products.where("ignore = false").size - left_count),
+          left_count: left_count,
+          quantity_ignored: @count.counts_products.where("ignore = true").size,
+          employees: @count.employees
+        }
+      }
+    end
   end
 
   def dashboard_table
@@ -230,7 +252,12 @@ class CountsController < ApplicationController
       }, status: 400
     else
       if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
-        ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
+        begin
+          ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
+        rescue
+          CountEmployee.connection
+          ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
+        end
         if ce.products["products"].index(params[:count][:product_id].to_i) == nil
           render json:{
             status: "error",
@@ -445,7 +472,12 @@ class CountsController < ApplicationController
   end
 
   def set_employees_to_third_count
-    CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
+    begin
+      CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
+    rescue
+      CountEmployee.connection
+      CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
+    end
     render json: { status: "success" }
   end
 
