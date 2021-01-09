@@ -290,9 +290,13 @@ class CountsController < ApplicationController
         result = cp.results.find_by(order: 4)
       end
       if result.quantity_found == -1
-        if  cp.product.location["step"].blank? ||
+        if  cp.product.location.blank? ||
+            cp.product.location["step"].blank? ||
             cp.product.location["step"] != cp.count.status
           p = cp.product
+          if p.location.blank?
+            p.location = {}
+          end
           p.location["step"] = cp.count.status
           p.location["counted_on_step"] = []
           p.save(validate: false)
