@@ -17,10 +17,10 @@ class CsvBuilder
       row << (cp.product.value.gsub! '.',',') #VLR UNIT
       row << (cp.total_value.gsub! '.',',') #VLRT TOTAL
       row << cp.product.current_stock #SALDO INICIAL
-      row << (cp.results.order(:order)[0].blank?? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
-      row << (cp.results.order(:order)[1].blank?? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
-      row << (cp.results.order(:order)[2].blank?? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
-      row << (cp.results.order(:order)[3].blank?? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+      row << ((cp.results.find_by(order: 1).blank? || cp.results.find_by(order: 1).quantity_found < 0)? '-' : cp.results.find_by(order: 1).quantity_found) #CONT 1
+      row << ((cp.results.find_by(order: 2).blank? || cp.results.find_by(order: 2).quantity_found < 0)? '-' : cp.results.find_by(order: 2).quantity_found) #CONT 2
+      row << ((cp.results.find_by(order: 3).blank? || cp.results.find_by(order: 3).quantity_found < 0)? '-' : cp.results.find_by(order: 3).quantity_found) #CONT 3
+      row << ((cp.results.find_by(order: 4).blank? || cp.results.find_by(order: 4).quantity_found < 0)? '-' : cp.results.find_by(order: 4).quantity_found) #CONT 4
       row << cp.results.order(:order).last.quantity_found #SALDO FINAL
       row << cp.percentage_result #RESULTADO %
       streets = []

@@ -253,10 +253,10 @@ class Count < ApplicationRecord
         row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
         row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
-        row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
-        row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
-        row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
-        row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+        row << ((cp.results.find_by(order: 1).blank? || cp.results.find_by(order: 1).quantity_found < 0)? '-' : cp.results.find_by(order: 1).quantity_found) #CONT 1
+        row << ((cp.results.find_by(order: 2).blank? || cp.results.find_by(order: 2).quantity_found < 0)? '-' : cp.results.find_by(order: 2).quantity_found) #CONT 2
+        row << ((cp.results.find_by(order: 3).blank? || cp.results.find_by(order: 3).quantity_found < 0)? '-' : cp.results.find_by(order: 3).quantity_found) #CONT 3
+        row << ((cp.results.find_by(order: 4).blank? || cp.results.find_by(order: 4).quantity_found < 0)? '-' : cp.results.find_by(order: 4).quantity_found) #CONT 4
         row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
@@ -306,10 +306,10 @@ class Count < ApplicationRecord
         row << (cp.product.value.to_s.gsub! '.',',') #VLR UNIT
         row << (cp.total_value.to_s.gsub! '.',',') #VLRT TOTAL
         row << cp.product.current_stock #SALDO INICIAL
-        row << ((cp.results.order(:order)[0].blank? || cp.results.order(:order)[0].quantity_found < 0)? '-' : cp.results.order(:order)[0].quantity_found) #CONT 1
-        row << ((cp.results.order(:order)[1].blank? || cp.results.order(:order)[1].quantity_found < 0)? '-' : cp.results.order(:order)[1].quantity_found) #CONT 2
-        row << ((cp.results.order(:order)[2].blank? || cp.results.order(:order)[2].quantity_found < 0)? '-' : cp.results.order(:order)[2].quantity_found) #CONT 3
-        row << ((cp.results.order(:order)[3].blank? || cp.results.order(:order)[3].quantity_found < 0)? '-' : cp.results.order(:order)[3].quantity_found) #CONT 4
+        row << ((cp.results.find_by(order: 1).blank? || cp.results.find_by(order: 1).quantity_found < 0)? '-' : cp.results.find_by(order: 1).quantity_found) #CONT 1
+        row << ((cp.results.find_by(order: 2).blank? || cp.results.find_by(order: 2).quantity_found < 0)? '-' : cp.results.find_by(order: 2).quantity_found) #CONT 2
+        row << ((cp.results.find_by(order: 3).blank? || cp.results.find_by(order: 3).quantity_found < 0)? '-' : cp.results.find_by(order: 3).quantity_found) #CONT 3
+        row << ((cp.results.find_by(order: 4).blank? || cp.results.find_by(order: 4).quantity_found < 0)? '-' : cp.results.find_by(order: 4).quantity_found) #CONT 4
         row << ((cp.results.order(:order).last.blank? || cp.results.order(:order).last.quantity_found < 0)? '-' : cp.results.order(:order).last.quantity_found) #SALDO FINAL
         row << cp.percentage_result #RESULTADO %
         streets = []
@@ -420,7 +420,7 @@ class Count < ApplicationRecord
     self.save(validate: false)
     CountProduct.question_result(ids)
     counts_products.where("combined_count = false").each do |cp|
-      if cp.results.size <= 3
+        if !cp.results.find_by(order: 4).present?
         Result.new(
           count_product_id: cp.id,
           order: 4,
