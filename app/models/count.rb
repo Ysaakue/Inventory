@@ -74,49 +74,49 @@ class Count < ApplicationRecord
 
   def prepare_count
     if !self.calculating?
-    status = "calculating"
-    save(validate: false)
-    temp_products = company.products.where(active: true)
-    if products_quantity_to_count < temp_products.size
-      if value?
-        temp_products =  temp_products.where('value >= ?', self.minimum_value)
-                                      .order(value: :desc)
-                                      .limit(products_quantity_to_count)
-      elsif turnover?
-        temp_products =  temp_products.select('*,(products.output*100/products.input) as giro')
-                                      .where('products.input is not null').order('giro desc')
-                                      .limit(products_quantity_to_count)
-      else
-        temp_products = temp_products.shuffle[0..products_quantity_to_count-1]
+      status = "calculating"
+      save(validate: false)
+      temp_products = company.products.where(active: true)
+      if products_quantity_to_count < temp_products.size
+        if value?
+          temp_products =  temp_products.where('value >= ?', self.minimum_value)
+                                        .order(value: :desc)
+                                        .limit(products_quantity_to_count)
+        elsif turnover?
+          temp_products =  temp_products.select('*,(products.output*100/products.input) as giro')
+                                        .where('products.input is not null').order('giro desc')
+                                        .limit(products_quantity_to_count)
+        else
+          temp_products = temp_products.shuffle[0..products_quantity_to_count-1]
+        end
       end
+      initial_value = 0
+      temp_products.each do |product|
+        if !product.location.blank? && !product.location["step"].blank?
+          product.location.delete("step")
+        end
+        if !product.location.blank? && !product.location["counted_on_step"].blank?
+          product.location.delete("counted_on_step")
+        end
+        product.save
+        total_value = product.value * product.current_stock
+        cp = CountProduct.new(
+          product_id: product.id,
+          count_id: id,
+          combined_count: false,
+          total_value: total_value
+        )
+        cp.save(validate: false)
+        self.initial_value += cp.total_value
+        self.initial_stock += product.current_stock
+        Result.new(
+          count_product_id: cp.id,
+          order: 1,
+        ).save(validate: false)
+      end
+      status = "first_count"
+      save(validate: false)
     end
-    initial_value = 0
-    temp_products.each do |product|
-      if !product.location.blank? && !product.location["step"].blank?
-        product.location.delete("step")
-      end
-      if !product.location.blank? && !product.location["counted_on_step"].blank?
-        product.location.delete("counted_on_step")
-      end
-      product.save
-      total_value = product.value * product.current_stock
-      cp = CountProduct.new(
-        product_id: product.id,
-        count_id: id,
-        combined_count: false,
-        total_value: total_value
-      )
-      cp.save(validate: false)
-      self.initial_value += cp.total_value
-      self.initial_stock += product.current_stock
-      Result.new(
-        count_product_id: cp.id,
-        order: 1,
-      ).save(validate: false)
-    end
-    status = "first_count"
-    save(validate: false)
-  end
   end
 
   def verify_count
@@ -129,7 +129,7 @@ class Count < ApplicationRecord
       three = 0
       four = 0
       status = ""
-      self.counts_products.each do |cp|
+      self.counts_products.where("ignore = false").each do |cp|
         if !cp.combined_count?
           if cp.results.size == 1
             one+=1
@@ -210,21 +210,21 @@ class Count < ApplicationRecord
 
   def generate_fourth_results
     if !self.calculating?
-    self.status = "calculating"
-    self.save(validate: false)
-    if fourth_count_released?
-      counts_products.where("combined_count = false").each do |cp|
-        if cp.results.size == 3
-          Result.new(
-            count_product_id: cp.id,
-            order: 4,
-          ).save!
-        end
-      end
-      self.status = "fourth_count"
+      self.status = "calculating"
       self.save(validate: false)
+      if fourth_count_released?
+        counts_products.where("combined_count = false").each do |cp|
+          if cp.results.size == 3
+            Result.new(
+              count_product_id: cp.id,
+              order: 4,
+            ).save!
+          end
+        end
+        self.status = "fourth_count"
+        self.save(validate: false)
+      end
     end
-  end
   end
 
   def employees_to_report
@@ -421,34 +421,34 @@ class Count < ApplicationRecord
 
   def question_result(ids)
     if !self.calculating?
-    self.status = "calculating"
-    self.save(validate: false)
-    CountProduct.question_result(ids)
-    counts_products.where("combined_count = false").each do |cp|
+      self.status = "calculating"
+      self.save(validate: false)
+      CountProduct.question_result(ids)
+      counts_products.where("combined_count = false").each do |cp|
         if !cp.results.find_by(order: 4).present?
-        Result.new(
-          count_product_id: cp.id,
-          order: 4,
-        ).save!
-      else
-        r = cp.results.order(:order).last
-        r.quantity_found = -1
-        r.save
-        if !cp.product.location.blank? && !cp.product.location["step"].blank?
-          product = cp.product
-          product.location.delete("step")
-          product.save
-        end
-        if !cp.product.location.blank? && !cp.product.location["counted_on_step"].blank?
-          product = cp.product
-          product.location.delete("counted_on_step")
-          product.save
+          Result.new(
+            count_product_id: cp.id,
+            order: 4,
+          ).save!
+        else
+          r = cp.results.order(:order).last
+          r.quantity_found = -1
+          r.save
+          if !cp.product.location.blank? && !cp.product.location["step"].blank?
+            product = cp.product
+            product.location.delete("step")
+            product.save
+          end
+          if !cp.product.location.blank? && !cp.product.location["counted_on_step"].blank?
+            product = cp.product
+            product.location.delete("counted_on_step")
+            product.save
+          end
         end
       end
+      self.status = "fourth_count"
+      self.save(validate: false)
     end
-    self.status = "fourth_count"
-    self.save(validate: false)
-  end
   end
 
   def divide_products_lists

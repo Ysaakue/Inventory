@@ -79,5 +79,4 @@ class CountProduct < ApplicationRecord
 
   # Define asynchronous tasks
   handle_asynchronously :calculate_attributes
-  handle_asynchronously :reset_results
 end
