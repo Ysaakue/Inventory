@@ -50,7 +50,7 @@ class Import < ApplicationRecord
           description: (product["description"] != nil)? product["description"] : "",
           code: product["code"],
           current_stock: (product["current_stock"] != nil)? product["current_stock"] : 0,
-          value: product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f,
+          value: product["value"].to_s.gsub('R$','').gsub(' ','').gsub(',','.').to_f,
           unit_measurement: (product["unit_measurement"] != nil)? product["unit_measurement"] : "",
           company_id: self.company_id,
           input: (product["input"] != nil)? product["input"] : 0,
