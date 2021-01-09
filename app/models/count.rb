@@ -73,6 +73,7 @@ class Count < ApplicationRecord
   end
 
   def prepare_count
+    if !self.calculating?
     status = "calculating"
     save(validate: false)
     temp_products = company.products.where(active: true)
@@ -115,6 +116,7 @@ class Count < ApplicationRecord
     end
     status = "first_count"
     save(validate: false)
+  end
   end
 
   def verify_count
@@ -207,6 +209,7 @@ class Count < ApplicationRecord
   end
 
   def generate_fourth_results
+    if !self.calculating?
     self.status = "calculating"
     self.save(validate: false)
     if fourth_count_released?
@@ -221,6 +224,7 @@ class Count < ApplicationRecord
       self.status = "fourth_count"
       self.save(validate: false)
     end
+  end
   end
 
   def employees_to_report
@@ -416,6 +420,7 @@ class Count < ApplicationRecord
   end
 
   def question_result(ids)
+    if !self.calculating?
     self.status = "calculating"
     self.save(validate: false)
     CountProduct.question_result(ids)
@@ -443,6 +448,7 @@ class Count < ApplicationRecord
     end
     self.status = "fourth_count"
     self.save(validate: false)
+  end
   end
 
   def divide_products_lists
