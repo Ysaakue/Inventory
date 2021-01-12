@@ -360,12 +360,7 @@ class Count < ApplicationRecord
     counts_products.each { |cp| cp.calculate_attributes_without_delay(false) }
     self.calculate_initial_value
     self.calculate_final_value
-    accuracy_ = ((self.final_value)*100)/(self.initial_value)
-    if accuracy_ > 100
-      difference = accuracy_ - 100
-      accuracy_ = 100 - difference
-    end
-    self.accuracy = accuracy_
+    self.accuracy = ((self.final_value)*100)/(self.initial_value)
     accuracy_by_stock_ = 0
     counts_products.each do |cp|
       accuracy_by_stock_ += cp.percentage_result

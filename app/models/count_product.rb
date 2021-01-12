@@ -6,12 +6,7 @@ class CountProduct < ApplicationRecord
   validates :product_id, uniqueness: { scope: :count, message: "Um produto com esse código já foi cadastrado para essa contagem" }
 
   def calculate_attributes(update_count=true)
-    accuracy = ((self.results.blank?? 0 : self.results.order(:order).last.quantity_found)*100)/self.product.current_stock
-    if accuracy > 100
-      difference = accuracy - 100
-      accuracy = 100 - difference
-    end
-    self.percentage_result = accuracy
+    self.percentage_result = ((self.results.blank?? 0 : self.results.order(:order).last.quantity_found)*100)/self.product.current_stock
     self.final_total_value = (self.results.blank?? 0 : self.results.order(:order).last.quantity_found) * self.product.value
     self.percentage_result_value = (((self.results.blank?? 0 : self.results.order(:order).last.quantity_found) * self.product.value)*100)/(self.product.current_stock * self.product.value)
     self.save(validate: false)
