@@ -494,7 +494,7 @@ class CountsController < ApplicationController
 
   def products_simplified
     render json:{
-      products: @count.counts_products.where("ignore = false").as_json(fake_product: true)
+      products: @count.counts_products.where("ignore = false and percentage_result != 100").as_json(fake_product: true)
     }
   end
 
