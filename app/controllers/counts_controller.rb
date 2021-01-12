@@ -272,7 +272,7 @@ class CountsController < ApplicationController
         if cp.results.order(:order)[0].employee_id == params[:count][:employee_id]
           render json: {
             status: "error",
-            message: "Funcionário já realizou uma contagem desse produto."
+            message: "Você já contou este produto na etapa anterior."
           }, status: 400
           return
         end
