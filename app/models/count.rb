@@ -187,6 +187,10 @@ class Count < ApplicationRecord
         status = self.status
       end
 
+      if self.completed?
+        self.calculate_accuracy
+      end
+
       if status == ""
         # status_changed = true
         self.status = status_before

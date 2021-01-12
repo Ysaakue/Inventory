@@ -15,7 +15,6 @@ class CountProduct < ApplicationRecord
       @count.final_value += self.final_total_value
       @count.final_stock += (self.results.blank?? 0 : self.results.order(:order).last.quantity_found)
       @count.save(validate: false)
-      @count.calculate_accuracy
     end
   end
 
