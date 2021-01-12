@@ -469,10 +469,17 @@ class CountsController < ApplicationController
   end
 
   def divide_products
-    @count.divide_products_lists
-    render json:{
-      status: "success"
-    }
+    if !@count.divided?
+      @count.divide_products_lists
+      render json:{
+        status: "success"
+      }
+    else
+      render json:{
+        status: "error",
+        message: ["As listas já foram distribuidas para essa contagem."]
+      }, status: 400
+    end
   end
 
   def set_employees_to_third_count
