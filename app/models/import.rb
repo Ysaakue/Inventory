@@ -23,7 +23,7 @@ class Import < ApplicationRecord
       if product_created.present?
         product_created.description = (product["description"] != nil)? product["description"] : ""
         product_created.current_stock = (product["current_stock"] != nil)? product["current_stock"] : 0
-        product_created.value = product["value"].gsub('R$','').gsub(' ','').gsub(',','.').to_f
+        product_created.value = product["value"].to_s.gsub('R$','').gsub(' ','').gsub(',','.').to_f
         product_created.unit_measurement = (product["unit_measurement"] != nil)? product["unit_measurement"] : ""
         product_created.input = (product["input"] != nil)? product["input"] : 0
         product_created.output = (product["output"] != nil)? product["output"] : 0
