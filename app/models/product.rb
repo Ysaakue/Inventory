@@ -46,14 +46,14 @@ class Product < ApplicationRecord
     end
   end
 
-  def self.set_not_new(ids)
+  def set_not_new(ids)
     sql = "update products set new = false where id in (#{ids.join(',')}) "
-    result = ActiveRecord::Base.connection.exec_query(sql)
+    result = ActiveRecord::Base.connection.execute(sql)
   end
 
-  def self.clear_location(company_id)
+  def clear_location(company_id)
     sql = "update products as p set location = '{}' where p.company_id = #{company_id}"
-    result = ActiveRecord::Base.connection.exec_query(sql)
+    result = ActiveRecord::Base.connection.execute(sql)
   end
 
   def process_locations(streets,stands,shelfs,pallets)
