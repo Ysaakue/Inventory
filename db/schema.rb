@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_01_06_175239) do
+ActiveRecord::Schema.define(version: 2021_01_13_125409) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -73,7 +73,6 @@ ActiveRecord::Schema.define(version: 2021_01_06_175239) do
     t.float "initial_value", default: 0.0
     t.float "final_value", default: 0.0
     t.float "accuracy", default: 0.0
-    t.boolean "divided", default: false
     t.integer "goal"
     t.integer "user_id"
     t.integer "filter", default: 0
@@ -81,6 +80,7 @@ ActiveRecord::Schema.define(version: 2021_01_06_175239) do
     t.integer "initial_stock", default: 0
     t.integer "final_stock", default: 0
     t.float "accuracy_by_stock", default: 0.0
+    t.integer "divide_status", default: 0
   end
 
   create_table "counts_employees", force: :cascade do |t|

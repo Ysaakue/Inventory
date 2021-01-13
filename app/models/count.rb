@@ -29,6 +29,13 @@ class Count < ApplicationRecord
     :turnover               #2
   ]
 
+  enum divide_status: [
+    :no_divided,
+    :dividing,
+    :divided,
+    :redistributed
+  ]
+
   def date_not_retrograde
     if date == nil || date < Date.today
       errors.add(:date, "A data não pode ser retrograda")
@@ -451,31 +458,38 @@ class Count < ApplicationRecord
   end
 
   def divide_products_lists
-    ids_ = self.product_ids.shuffle
-    employees_ = self.counts_employees
-    module_ = (ids_.size % employees_.size) - 1
-    each_ = ids_.size / employees_.size
-    end_ = -1
-    employees_.each_with_index do |ce,index|
-      start_ = end_ + 1
-      end_ = start_ + each_ - 1
-      if index <= module_
-        end_+=1
+    if !self.dividing?
+      self.dividing!
+      ids_ = self.product_ids.shuffle
+      employees_ = self.counts_employees
+      module_ = (ids_.size % employees_.size) - 1
+      each_ = ids_.size / employees_.size
+      end_ = -1
+      employees_.each_with_index do |ce,index|
+        start_ = end_ + 1
+        end_ = start_ + each_ - 1
+        if index <= module_
+          end_+=1
+        end
+        ce.products = {"products": ids_[start_..end_]}
+        ce.save
       end
-      ce.products = {"products": ids_[start_..end_]}
-      ce.save
+      self.save(validate: false)
+      self.divided!
     end
-    self.divided = true
-    self.save(validate: false)
   end
 
   def redistribute_products_lists
-    previus = counts_employees.last.products
-    counts_employees.each do |ce|
-      temp = ce.products
-      ce.products = previus
-      previus = temp
-      ce.save
+    if !self.dividing?
+      self.dividing!
+      previus = counts_employees.last.products
+      counts_employees.each do |ce|
+        temp = ce.products
+        ce.products = previus
+        previus = temp
+        ce.save
+      end
+      self.redistributed!
     end
   end
 
@@ -533,8 +547,6 @@ class Count < ApplicationRecord
   handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
   handle_asynchronously :generate_report
-  handle_asynchronously :divide_products_lists
-  handle_asynchronously :redistribute_products_lists
   handle_asynchronously :complete_products_step
   handle_asynchronously :calculate_accuracy
 end

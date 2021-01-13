@@ -99,24 +99,25 @@ class CountsController < ApplicationController
       end
       left_count = Result.where('count_product_id in (?) and results.order = ? and quantity_found = -1',@count.counts_products.ids,status).size
     end
-      render json: {
-        count: {
-          id: @count.id,
-          date: @count.date,
-          goal: @count.goal,
-          status: @count.status,
-          report_csv_status: (file.present?? file.status : "nonexistent"),
-          company: @count.company.fantasy_name,
-          initial_value: @count.initial_value,
-          final_value: @count.final_value,
-          accuracy: @count.accuracy,
-          accuracy_by_stock: @count.accuracy_by_stock,
-          already_counted: (@count.counts_products.where("ignore = false").size - left_count),
-          left_count: left_count,
-          quantity_ignored: @count.counts_products.where("ignore = true").size,
-          employees: @count.employees
-        }
+    render json: {
+      count: {
+        id: @count.id,
+        date: @count.date,
+        goal: @count.goal,
+        status: @count.status,
+        report_csv_status: (file.present?? file.status : "nonexistent"),
+        company: @count.company.fantasy_name,
+        initial_value: @count.initial_value,
+        final_value: @count.final_value,
+        accuracy: @count.accuracy,
+        accuracy_by_stock: @count.accuracy_by_stock,
+        already_counted: (@count.counts_products.where("ignore = false").size - left_count),
+        left_count: left_count,
+        quantity_ignored: @count.counts_products.where("ignore = true").size,
+        employees: @count.employees,
+        list_divided: ( @count.no_divided?? false : true )
       }
+    }
   end
 
   def dashboard_table
@@ -229,7 +230,7 @@ class CountsController < ApplicationController
         message: "Não há divergências na contagem desse produto."
       }, status: 400
     else
-      if cp.count.divided && (cp.count.first_count? || cp.count.second_count?)
+      if  (cp.count.divided? || cp.count.redistributed?) &&
           (cp.count.first_count? || cp.count.second_count?)
         ce = CountEmployee.find_by(employee_id: params[:count][:employee_id], count_id: params[:count][:count_id])
         if ce.products["products"].index(params[:count][:product_id].to_i) == nil
@@ -405,7 +406,7 @@ class CountsController < ApplicationController
     if status < 3
       status+=1
     end
-    if @count.divided && !@count.fourth_count?
+    if (@count.divided? || @count.redistributed?)  && !@count.fourth_count?
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id} and count_products.product_id in (#{@count.counts_employees.find_by(employee_id: params[:employee_id]).products["products"].join(',')})")
     else
       products = CountProduct.joins("inner join results on results.count_product_id = count_products.id and results.order = #{status} and count_products.count_id = #{@count.id}")
@@ -443,7 +444,7 @@ class CountsController < ApplicationController
   end
 
   def divide_products
-    if !@count.divided?
+    if @count.no_divided?
       @count.divide_products_lists
       render json:{
         status: "success"
@@ -457,6 +458,7 @@ class CountsController < ApplicationController
   end
 
   def set_employees_to_third_count
+    CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
     render json: { status: "success" }
   end
 
