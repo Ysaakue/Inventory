@@ -458,7 +458,7 @@ class CountsController < ApplicationController
   end
 
   def set_employees_to_third_count
-    CountEmployee.set_employees_to_third_count(@count,params[:employee_ids])
+    @count.delegate_employee_to_third_count(params[:employee_ids])
     render json: { status: "success" }
   end
 
@@ -577,8 +577,7 @@ class CountsController < ApplicationController
   end
 
   def finish_count
-    @count.status = "completed"
-    if @count.save(validate: false)
+    if @count.completed!
       render json:{
         status: "success",
         data: @count.as_json(dashboard: true)

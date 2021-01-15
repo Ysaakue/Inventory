@@ -482,7 +482,8 @@ class Count < ApplicationRecord
     end
   end
 
-  def delegate_employee_to_third_count
+  def delegate_employee_to_third_count(ids)
+    CountEmployee.set_employees_to_third_count(ids)
     ids_ = counts_products.where('combined_count = false').map { |cp| cp.product_id }
     self.counts_employees.each do |ce|
       ce.products = {"products": []}
@@ -538,4 +539,5 @@ class Count < ApplicationRecord
   handle_asynchronously :generate_report
   handle_asynchronously :complete_products_step
   handle_asynchronously :calculate_accuracy
+  handle_asynchronously :delegate_employee_to_third_count
 end

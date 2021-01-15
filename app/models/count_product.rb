@@ -62,7 +62,7 @@ class CountProduct < ApplicationRecord
     end
   end
 
-  def question_result(ids)
+  def self.question_result(ids)
     sql = "update count_products set combined_count = false where product_id in (#{ids.join(',')}) "
     result = ActiveRecord::Base.connection.execute(sql)
   end
