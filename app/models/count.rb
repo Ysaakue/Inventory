@@ -300,7 +300,7 @@ class Count < ApplicationRecord
       sheet.add_row [
         "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
         "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
-        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA", "HITÓRICO DE LOCALIZAÇÕES"
       ]
       
       self.counts_products.each do |cp|
@@ -340,6 +340,7 @@ class Count < ApplicationRecord
         row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
         row << cp.percentage_result_value #RESULTADO VLR %
         row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+        row << (cp.location_log.blank?? "" : "- #{cp.location_log["log"].join("\n- ")}")
         sheet.add_row row
       end
     end

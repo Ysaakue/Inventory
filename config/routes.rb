@@ -39,12 +39,12 @@ Rails.application.routes.draw do
       post ':id/set_nonconformity',             to: 'counts#set_nonconformity'
       post ':id/finish_count',                  to: 'counts#finish_count'
       post ':id/set_employees_to_third_count',  to: 'counts#set_employees_to_third_count'
+      post ':id/remove_location/:product_id',   to: 'counts#remove_location'
     end
   end
   resources :products, only: [] do
     collection do
       post 'set_not_new', to: 'products#set_not_new'
-      post ':id/remove_location', to: 'products#remove_location'
     end
   end
   resources :roles, only: [:index,:create]

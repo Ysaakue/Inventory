@@ -1,5 +1,6 @@
 class CountsController < ApplicationController
   load_and_authorize_resource
+  before_action :set_product, only: [:remove_location]
   before_action :set_company, only: [:index_by_company]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
@@ -590,6 +591,29 @@ class CountsController < ApplicationController
     end
   end
 
+  def remove_location
+    if @product.location["locations"].include? params["location"]
+      @product.location["locations"].delete params["location"]
+      if @product.save
+        render json: {
+          status: "success",
+          data: @product
+        }
+        remove_location_fromproduct_and_add_to_log(CountProduct.find_by(count_id: @count.id,product_id: @product.id),params["location"])
+      else
+        render json: {
+          status: "error",
+          message: @product.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    else
+      render json: {
+        status: "error",
+        message: ["Localização inválida"]
+      }, status: 404
+    end
+  end
+
   private
   def count_params
     params.require(:count).permit(
@@ -631,6 +655,7 @@ class CountsController < ApplicationController
       end
       if !product.location["locations"].include?(params[:count][:location])
         product.location["locations"] << params[:count][:location]
+        add_location_to_log(cp,params[:count][:location])
         product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       elsif !product.location["locations"].blank? &&
             product.location["locations"].include?(params[:count][:location])
@@ -638,5 +663,33 @@ class CountsController < ApplicationController
       end
     end
     product.save(validate: false)
+  end
+
+  def set_product
+    @product = Product.find(params[:product_id])
+  end
+
+  def add_location_to_log(cp,location)
+    if cp.location_log.blank?
+      cp.location_log = {"log": []}
+    end
+    if !location["pallet"].blank?
+      cp.location_log["log"] << "Localização adicionada: Pallet #{location["pallet"]}."
+    else
+      cp.location_log["log"] << "Localização adicionada: Rua #{location["street"]}, Estante #{location["stand"]}, Prateleira #{location["shelf"]}."
+    end
+    cp.save
+  end
+
+  def remove_location_fromproduct_and_add_to_log(cp,location)
+    if cp.location_log.blank?
+      cp.location_log = {"log": []}
+    end
+    if !location["pallet"].blank?
+      cp.location_log["log"] << "Localização removida: Pallet #{location["pallet"]}."
+    else
+      cp.location_log["log"] << "Localização removida: Rua #{location["street"]}, Estante #{location["stand"]}, Prateleira #{location["shelf"]}."
+    end
+    cp.save
   end
 end
