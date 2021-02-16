@@ -81,8 +81,7 @@ class Count < ApplicationRecord
 
   def prepare_count
     if !self.calculating?
-      status = "calculating"
-      save(validate: false)
+      self.calculating!
       temp_products = company.products.where(active: true)
       if products_quantity_to_count < temp_products.size
         if value?
@@ -121,16 +120,14 @@ class Count < ApplicationRecord
           order: 1,
         ).save(validate: false)
       end
-      status = "first_count"
-      save(validate: false)
+      self.first_count!
     end
   end
 
   def verify_count
     if !self.calculating?
       status_before = self.status
-      self.status = "calculating"
-      self.save(validate: false)
+      self.calculating!
       one = 0
       two = 0
       three = 0
@@ -170,27 +167,23 @@ class Count < ApplicationRecord
         end
       end
       if status_before == "first_count" && one == 0
-        self.status = "second_count"
-        self.save(validate: false)
+        self.second_count!
         status = self.status
         if self.divided?
           self.redistribute_products_lists
         end
       elsif status_before == "second_count" && two == 0
         if three != 0
-          self.status = "third_count"
+          self.third_count!
         else
-          self.status = "completed"
+          self.completed!
         end
-        self.save(validate: false)
         status = self.status
       elsif status_before == "third_count" && three == 0
-        self.status = "completed"
-        self.save(validate: false)
+        self.completed!
         status = self.status
       elsif status_before == "fourth_count" && four == 0
-        self.status = "completed"
-        self.save(validate: false)
+        self.completed!
         status = self.status
       end
 
@@ -221,8 +214,7 @@ class Count < ApplicationRecord
 
   def generate_fourth_results
     if !self.calculating?
-      self.status = "calculating"
-      self.save(validate: false)
+      self.calculating!
       if fourth_count_released?
         counts_products.where("combined_count = false").each do |cp|
           if cp.results.size == 3
@@ -232,8 +224,7 @@ class Count < ApplicationRecord
             ).save!
           end
         end
-        self.status = "fourth_count"
-        self.save(validate: false)
+        self.fourth_count!
       end
     end
   end
@@ -427,8 +418,7 @@ class Count < ApplicationRecord
 
   def question_result(ids)
     if !self.calculating?
-      self.status = "calculating"
-      self.save(validate: false)
+      self.calculating!
       CountProduct.question_result(ids)
       counts_products.where("combined_count = false").each do |cp|
         if !cp.results.find_by(order: 4).present?
@@ -452,8 +442,7 @@ class Count < ApplicationRecord
           end
         end
       end
-      self.status = "fourth_count"
-      self.save(validate: false)
+      self.fourth_count!
     end
   end
 
@@ -493,7 +482,8 @@ class Count < ApplicationRecord
     end
   end
 
-  def delegate_employee_to_third_count
+  def delegate_employee_to_third_count(ids)
+    CountEmployee.set_employees_to_third_count(ids)
     ids_ = counts_products.where('combined_count = false').map { |cp| cp.product_id }
     self.counts_employees.each do |ce|
       ce.products = {"products": []}
@@ -549,4 +539,5 @@ class Count < ApplicationRecord
   handle_asynchronously :generate_report
   handle_asynchronously :complete_products_step
   handle_asynchronously :calculate_accuracy
+  handle_asynchronously :delegate_employee_to_third_count
 end
