@@ -31,6 +31,7 @@ Rails.application.routes.draw do
       get  ':id/download_report(.:format)',     to: 'counts#report_download'
       get  ':id/report_data',                   to: 'counts#report_data'
       get  ':id/products',                      to: 'counts#products_simplified'
+      get  ':id/products_out',                  to: 'counts#products_out_of_the_count'
       post ':id/question_results',              to: 'counts#question_results'
       post ':id/fourth_count_release',          to: 'counts#fourth_count_release'
       post ':id/ignore_product',                to: 'counts#ignore_product'
@@ -40,6 +41,7 @@ Rails.application.routes.draw do
       post ':id/finish_count',                  to: 'counts#finish_count'
       post ':id/set_employees_to_third_count',  to: 'counts#set_employees_to_third_count'
       post ':id/remove_location/:product_id',   to: 'counts#remove_location'
+      post ':id/add_product/:product_id',       to: 'counts#add_product_while_the_count'
     end
   end
   resources :products, only: [] do

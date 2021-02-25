@@ -105,12 +105,11 @@ class Count < ApplicationRecord
           product.location.delete("counted_on_step")
         end
         product.save
-        total_value = product.value * product.current_stock
         cp = CountProduct.new(
           product_id: product.id,
           count_id: id,
           combined_count: false,
-          total_value: total_value
+          total_value: (product.value * product.current_stock)
         )
         cp.save(validate: false)
         self.initial_value += cp.total_value

@@ -1,13 +1,13 @@
 class CountsController < ApplicationController
   load_and_authorize_resource
-  before_action :set_product, only: [:remove_location]
+  before_action :set_product, only: [:remove_location,:add_product_while_the_count]
   before_action :set_company, only: [:index_by_company]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
     :report_data,:pending_products,:question_results,:ignore_product,
     :divide_products,:verify_count,:set_nonconformity,:finish_count,
-    :set_employees_to_third_count
+    :set_employees_to_third_count,:products_out_of_the_count
   ]
 
   def index
@@ -578,7 +578,8 @@ class CountsController < ApplicationController
   end
 
   def finish_count
-    if @count.completed!
+    @count.status = "completed"
+    if @count.save(validate: false)
       render json:{
         status: "success",
         data: @count.as_json(dashboard: true)
@@ -612,6 +613,60 @@ class CountsController < ApplicationController
         message: ["Localização inválida"]
       }, status: 404
     end
+  end
+
+  def add_product_while_the_count
+    if (!@count.calculating? && !@count.first_count? && !@count.second_count? && !@count.third_count?)
+      return render json:{
+        status: "error",
+        message: "Não é mais possivel adicionar um produto a contagem"
+      }
+    end
+    cp = CountProduct.find_by(count_id: @count.id,product_id: @product.id)
+    if !cp.present?
+      cp = CountProduct.new(
+        count_id: @count.id,
+        product_id: @product.id,
+        combined_count: false,
+        total_value: (@product.value * @product.current_stock)
+      )
+      if !cp.save
+        render json:{
+          status: "error",
+          message: cp.errors
+        }, status: :unprocessable_entity
+      end
+    end
+    r = Result.find_by(count_product_id: cp.id)
+    if !r.present?
+      r = Result.new(
+        order: 3,
+        count_product_id: cp.id
+      )
+      if !r.save
+        render json:{
+          status: "error",
+          message: r.errors
+        }, status: :unprocessable_entity
+      end
+    end
+    render json:{
+      status: "success",
+      data: r
+    }
+  end
+
+  def products_out_of_the_count
+    if @count.products.size <=0
+      return render json: {
+        status: "error",
+        message: "Essa contagem ainda não foi processada"
+      }
+    end
+    @products = @count.company.products.where("id not in (#{@count.counts_products.map{ |cp| cp.product_id}.join(',')})")
+    render json: {
+      products: @products.as_json(simple: true)
+    }
   end
 
   private
