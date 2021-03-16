@@ -12,7 +12,7 @@ class CountsController < ApplicationController
 
   def index
     if current_user.master?
-      @counts = Count.all
+      @counts = Count.all.order(date: :desc, id: :desc)
     else
       @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)] + current_user.user_ids).order(date: :desc, id: :desc)
     end
