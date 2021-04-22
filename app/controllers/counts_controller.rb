@@ -579,6 +579,7 @@ class CountsController < ApplicationController
 
   def finish_count
     @count.status = "completed"
+    @count.complete_products_step
     if @count.save(validate: false)
       render json:{
         status: "success",

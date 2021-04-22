@@ -515,6 +515,7 @@ class Count < ApplicationRecord
       cp.combined_count = true
       cp.save(validate: false)
     end
+    self.calculate_accuracy
   end
 
   def can_create
