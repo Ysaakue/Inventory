@@ -46,7 +46,7 @@ Rails.application.routes.draw do
   end
   resources :products, only: [] do
     collection do
-      post 'set_not_new', to: 'products#set_not_new'
+      put 'set_not_new', to: 'products#set_not_new'
     end
   end
   resources :roles, only: [:index,:create]
