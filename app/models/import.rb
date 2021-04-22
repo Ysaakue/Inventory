@@ -2,6 +2,16 @@ class Import < ApplicationRecord
   belongs_to :company
   after_create :process
 
+  def as_json option={}
+    {
+      id: id,
+      company_id: company_id,
+      description: description,
+      created_at: created_at,
+      invalid_products: invalid_products
+    }
+  end
+
   def process
     self.description = "Processando produtos."
     self.invalid_products = []

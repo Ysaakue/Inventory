@@ -1,17 +1,18 @@
 class CountsController < ApplicationController
   load_and_authorize_resource
+  before_action :set_product, only: [:remove_location,:add_product_while_the_count]
   before_action :set_company, only: [:index_by_company]
   before_action :set_employee, only: [:index_by_employee]
   before_action :set_count, only: [
     :show,:update,:destroy,:fourth_count_release,:report_save,:report_download,
     :report_data,:pending_products,:question_results,:ignore_product,
     :divide_products,:verify_count,:set_nonconformity,:finish_count,
-    :set_employees_to_third_count
+    :set_employees_to_third_count,:products_out_of_the_count
   ]
 
   def index
     if current_user.master?
-      @counts = Count.all
+      @counts = Count.all.order(date: :desc, id: :desc)
     else
       @counts = Count.where('user_id in (?)',[current_user.id, ((current_user.role.description == "dependent")? current_user.user.id : 0)] + current_user.user_ids).order(date: :desc, id: :desc)
     end
@@ -577,7 +578,9 @@ class CountsController < ApplicationController
   end
 
   def finish_count
-    if @count.completed!
+    @count.status = "completed"
+    @count.complete_products_step
+    if @count.save(validate: false)
       render json:{
         status: "success",
         data: @count.as_json(dashboard: true)
@@ -588,6 +591,83 @@ class CountsController < ApplicationController
         message: @count.errors.full_messages
       }, status: :unprocessable_entity
     end
+  end
+
+  def remove_location
+    if @product.location["locations"].include? params["location"]
+      @product.location["locations"].delete params["location"]
+      if @product.save
+        render json: {
+          status: "success",
+          data: @product
+        }
+        remove_location_fromproduct_and_add_to_log(CountProduct.find_by(count_id: @count.id,product_id: @product.id),params["location"])
+      else
+        render json: {
+          status: "error",
+          message: @product.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    else
+      render json: {
+        status: "error",
+        message: ["Localização inválida"]
+      }, status: 404
+    end
+  end
+
+  def add_product_while_the_count
+    if (!@count.calculating? && !@count.first_count? && !@count.second_count? && !@count.third_count?)
+      return render json:{
+        status: "error",
+        message: "Não é mais possivel adicionar um produto a contagem"
+      }
+    end
+    cp = CountProduct.find_by(count_id: @count.id,product_id: @product.id)
+    if !cp.present?
+      cp = CountProduct.new(
+        count_id: @count.id,
+        product_id: @product.id,
+        combined_count: false,
+        total_value: (@product.value * @product.current_stock)
+      )
+      if !cp.save
+        render json:{
+          status: "error",
+          message: cp.errors
+        }, status: :unprocessable_entity
+      end
+    end
+    r = Result.find_by(count_product_id: cp.id)
+    if !r.present?
+      r = Result.new(
+        order: 3,
+        count_product_id: cp.id
+      )
+      if !r.save
+        render json:{
+          status: "error",
+          message: r.errors
+        }, status: :unprocessable_entity
+      end
+    end
+    render json:{
+      status: "success",
+      data: r
+    }
+  end
+
+  def products_out_of_the_count
+    if @count.products.size <=0
+      return render json: {
+        status: "error",
+        message: "Essa contagem ainda não foi processada"
+      }
+    end
+    @products = @count.company.products.where("id not in (#{@count.counts_products.map{ |cp| cp.product_id}.join(',')})")
+    render json: {
+      products: @products.as_json(simple: true)
+    }
   end
 
   private
@@ -631,6 +711,7 @@ class CountsController < ApplicationController
       end
       if !product.location["locations"].include?(params[:count][:location])
         product.location["locations"] << params[:count][:location]
+        add_location_to_log(cp,params[:count][:location])
         product.location["counted_on_step"] << product.location["locations"].index(params[:count][:location])
       elsif !product.location["locations"].blank? &&
             product.location["locations"].include?(params[:count][:location])
@@ -638,5 +719,33 @@ class CountsController < ApplicationController
       end
     end
     product.save(validate: false)
+  end
+
+  def set_product
+    @product = Product.find(params[:product_id])
+  end
+
+  def add_location_to_log(cp,location)
+    if cp.location_log.blank?
+      cp.location_log = {"log": []}
+    end
+    if !location["pallet"].blank?
+      cp.location_log["log"] << "Localização adicionada: Pallet #{location["pallet"]}."
+    else
+      cp.location_log["log"] << "Localização adicionada: Rua #{location["street"]}, Estante #{location["stand"]}, Prateleira #{location["shelf"]}."
+    end
+    cp.save
+  end
+
+  def remove_location_fromproduct_and_add_to_log(cp,location)
+    if cp.location_log.blank?
+      cp.location_log = {"log": []}
+    end
+    if !location["pallet"].blank?
+      cp.location_log["log"] << "Localização removida: Pallet #{location["pallet"]}."
+    else
+      cp.location_log["log"] << "Localização removida: Rua #{location["street"]}, Estante #{location["stand"]}, Prateleira #{location["shelf"]}."
+    end
+    cp.save
   end
 end

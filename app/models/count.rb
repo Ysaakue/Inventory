@@ -105,12 +105,11 @@ class Count < ApplicationRecord
           product.location.delete("counted_on_step")
         end
         product.save
-        total_value = product.value * product.current_stock
         cp = CountProduct.new(
           product_id: product.id,
           count_id: id,
           combined_count: false,
-          total_value: total_value
+          total_value: (product.value * product.current_stock)
         )
         cp.save(validate: false)
         self.initial_value += cp.total_value
@@ -127,7 +126,8 @@ class Count < ApplicationRecord
   def verify_count
     if !self.calculating?
       status_before = self.status
-      self.calculating!
+      self.status = "calculating"
+      self.save(validate: false)
       one = 0
       two = 0
       three = 0
@@ -167,23 +167,28 @@ class Count < ApplicationRecord
         end
       end
       if status_before == "first_count" && one == 0
-        self.second_count!
+        self.status = "second_count"
+        self.save(validate: false)
         status = self.status
         if self.divided?
           self.redistribute_products_lists
         end
       elsif status_before == "second_count" && two == 0
         if three != 0
-          self.third_count!
+          self.status = "third_count"
+          self.save(validate: false)
         else
-          self.completed!
+          self.status = "completed"
+          self.save(validate: false)
         end
         status = self.status
       elsif status_before == "third_count" && three == 0
-        self.completed!
+        self.status = "completed"
+        self.save(validate: false)
         status = self.status
       elsif status_before == "fourth_count" && four == 0
-        self.completed!
+        self.status = "completed"
+        self.save(validate: false)
         status = self.status
       end
 
@@ -300,7 +305,7 @@ class Count < ApplicationRecord
       sheet.add_row [
         "EMPRESA","COD","MATERIAL","UND","VLR UNIT","VLRT TOTAL","SALDO INICIAL",
         "CONT 1","CONT 2","CONT 3","CONT 4","SALDO FINAL","RESULTADO %","RUA","ESTANTE",
-        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA"
+        "PRATELEIRA","PALLET","VLR TOTAL FINAL","RESULTADO VLR %", "JUSTIFICATIVA", "HITÓRICO DE LOCALIZAÇÕES"
       ]
       
       self.counts_products.each do |cp|
@@ -340,6 +345,7 @@ class Count < ApplicationRecord
         row << (cp.final_total_value.to_s.gsub! '.',',') #VLR TOTAL FINAL
         row << cp.percentage_result_value #RESULTADO VLR %
         row << (cp.ignore?? ((cp.justification != nil)? cp.justification : cp.nonconformity ) : '') #JUSTIFICATIVA
+        row << (cp.location_log.blank?? "" : "- #{cp.location_log["log"].join("\n- ")}")
         sheet.add_row row
       end
     end
@@ -509,6 +515,7 @@ class Count < ApplicationRecord
       cp.combined_count = true
       cp.save(validate: false)
     end
+    self.calculate_accuracy
   end
 
   def can_create
@@ -534,7 +541,6 @@ class Count < ApplicationRecord
   
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
-  handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
   handle_asynchronously :generate_report
   handle_asynchronously :complete_products_step

@@ -64,28 +64,6 @@ class ProductsController < ApplicationController
     render json:{status: "success"}, status: 202
   end
 
-  def remove_location
-    if @product.location["locations"].include? params["location"]
-      @product.location["locations"].delete params["location"]
-      if @product.save
-        render json: {
-          status: "success",
-          data: @product
-        }
-      else
-        render json: {
-          status: "error",
-          message: @product.errors.full_messages
-        }, status: :unprocessable_entity
-      end
-    else
-      render json: {
-        status: "error",
-        message: ["Localização inválida"]
-      }, status: 404
-    end
-  end
-
   private
   def product_params
     params.require(:product).permit(
