@@ -126,7 +126,8 @@ class Count < ApplicationRecord
   def verify_count
     if !self.calculating?
       status_before = self.status
-      self.calculating!
+      self.status = "calculating"
+      self.save(validate: false)
       one = 0
       two = 0
       three = 0
@@ -166,23 +167,28 @@ class Count < ApplicationRecord
         end
       end
       if status_before == "first_count" && one == 0
-        self.second_count!
+        self.status = "second_count"
+        self.save(validate: false)
         status = self.status
         if self.divided?
           self.redistribute_products_lists
         end
       elsif status_before == "second_count" && two == 0
         if three != 0
-          self.third_count!
+          self.status = "third_count"
+          self.save(validate: false)
         else
-          self.completed!
+          self.status = "completed"
+          self.save(validate: false)
         end
         status = self.status
       elsif status_before == "third_count" && three == 0
-        self.completed!
+        self.status = "completed"
+        self.save(validate: false)
         status = self.status
       elsif status_before == "fourth_count" && four == 0
-        self.completed!
+        self.status = "completed"
+        self.save(validate: false)
         status = self.status
       end
 
