@@ -541,7 +541,6 @@ class Count < ApplicationRecord
   
   # Define asynchronous tasks
   handle_asynchronously :prepare_count
-  handle_asynchronously :verify_count
   handle_asynchronously :generate_fourth_results
   handle_asynchronously :generate_report
   handle_asynchronously :complete_products_step
