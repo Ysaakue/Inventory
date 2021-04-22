@@ -381,8 +381,8 @@ class Count < ApplicationRecord
     final_value_ = 0
     final_stock_ = 0
     counts_products.where(combined_count: true).each do |cp|
-      final_value_ += cp.final_total_value
-      final_stock_ += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
+      self.final_value_ += cp.final_total_value
+      self.final_stock_ += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
     end
     self.final_value = final_value_
     self.final_stock = final_stock_
