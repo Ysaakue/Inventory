@@ -42,7 +42,7 @@ class Result < ApplicationRecord
               count_product.product.location["counted_on_step"].size == count_product.product.location["locations"].size
             )
           ) || (
-            count_product.count.fourth_count?
+            count_product.count.fourth_count? &&
             count_product.results.find_by(order: 4).quantity_found != -1 &&
             (
               !count_product.product.location["locations"].blank? &&
@@ -65,5 +65,5 @@ class Result < ApplicationRecord
   end
   
   # Define asynchronous tasks
-  handle_asynchronously :verify_result
+  #handle_asynchronously :verify_result
 end

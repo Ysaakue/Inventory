@@ -292,9 +292,9 @@ class CountsController < ApplicationController
         result.quantity_found += params[:count][:quantity_found]
       end
       
+      update_product_location(cp)
       result.employee_id = params[:count][:employee_id]
       result.save!
-      update_product_location(cp)
       render json:{
         status: "success",
         data: result
