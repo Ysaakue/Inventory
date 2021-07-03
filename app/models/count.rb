@@ -370,31 +370,31 @@ class Count < ApplicationRecord
     self.calculate_final_value
     self.accuracy = ((self.final_value)*100)/(self.initial_value)
     accuracy_by_stock_ = 0
-    counts_products.each do |cp|
+    counts_products.where(ignore: false).each do |cp|
       accuracy_by_stock_ += cp.percentage_result
     end
-    self.accuracy_by_stock = accuracy_by_stock_ / counts_products.size
+    self.accuracy_by_stock = accuracy_by_stock_ / counts_products.where(ignore: false).size
     self.save(validate: false)
   end
 
   def calculate_final_value
     self.final_value = 0
     self.final_stock = 0
-    counts_products.where(combined_count: true).each do |cp|
+    counts_products.where(ignore: false,combined_count: true).each do |cp|
       self.final_value += cp.final_total_value
       self.final_stock += (cp.results.blank?? 0 : cp.results.order(:order).last.quantity_found)
     end
-    save(validate: false)
+    self.save(validate: false)
   end
 
   def calculate_initial_value
-    initial_value = 0
-    initial_stock = 0
-    counts_products.each do |cp|
-      initial_value += cp.product.value * cp.product.current_stock
-      initial_stock += cp.product.current_stock
+    self.initial_value = 0
+    self.initial_stock = 0
+    counts_products.where(ignore: false).each do |cp|
+      self.initial_value += cp.product.value * cp.product.current_stock
+      self.initial_stock += cp.product.current_stock
     end
-    save(validate: false)
+    self.save(validate: false)
   end
 
   def generate_report(content_type = "xlsx")
